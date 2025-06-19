@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../components/ui/use-toast';
-import { Loader2, Users, UserCheck, Shield, AlertTriangle } from 'lucide-react';
+import { Loader2, Users, UserCheck, Shield, AlertTriangle, BarChart2, FileUp } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -42,6 +42,8 @@ export default function AdminDashboard() {
     blockedUsers: 0
   });
   const { toast } = useToast();
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -85,6 +87,31 @@ export default function AdminDashboard() {
     };
 
     fetchUsers();
+  }, [toast]);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/admin/dashboard', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+        const data = await response.json();
+        setDashboardStats(data.stats);
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load dashboard stats",
+          variant: "destructive"
+        });
+      } finally {
+        setDashboardLoading(false);
+      }
+    };
+    fetchDashboardStats();
   }, [toast]);
 
   const toggleUserBlock = async (userId: string, isBlocked: boolean) => {
@@ -172,6 +199,14 @@ export default function AdminDashboard() {
     );
   }
 
+  if (dashboardLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   const statsData = [
     {
       title: "Total Users",
@@ -202,7 +237,52 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      
+
+      {/* --- Admin Stats Cards --- */}
+      {dashboardStats && (
+        <div className="flex flex-col md:flex-row gap-6 mb-8">
+          <div className="flex-1 bg-white dark:bg-gray-900 rounded-lg shadow p-6 flex items-center justify-between">
+            <div>
+              <div className="text-gray-500 text-sm">Total Uploads</div>
+              <div className="text-2xl font-bold">{dashboardStats.totalAnalyses}</div>
+            </div>
+            <FileUp className="w-8 h-8 text-blue-500" />
+          </div>
+          <div className="flex-1 bg-white dark:bg-gray-900 rounded-lg shadow p-6 flex items-center justify-between">
+            <div>
+              <div className="text-gray-500 text-sm">Charts Created</div>
+              <div className="text-2xl font-bold">{dashboardStats.totalAnalyses}</div>
+            </div>
+            <BarChart2 className="w-8 h-8 text-green-500" />
+          </div>
+          <div className="flex-1 bg-white dark:bg-gray-900 rounded-lg shadow p-6 flex items-center justify-between">
+            <div>
+              <div className="text-gray-500 text-sm">Total Users</div>
+              <div className="text-2xl font-bold">{dashboardStats.totalUsers}</div>
+            </div>
+            <Users className="w-8 h-8 text-purple-500" />
+          </div>
+        </div>
+      )}
+
+      {/* --- Chart Type Statistics --- */}
+      {dashboardStats && dashboardStats.chartTypes && (
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-8">
+          <div className="mb-4">
+            <div className="text-lg font-semibold">Chart Type Statistics</div>
+            <div className="text-sm text-gray-500">Most popular chart types among users</div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {dashboardStats.chartTypes.map((ct: any) => (
+              <div key={ct._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <span className="font-medium text-gray-900 dark:text-white">{ct._id || 'Unknown'}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">{ct.count} created</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsData.map((stat, index) => (

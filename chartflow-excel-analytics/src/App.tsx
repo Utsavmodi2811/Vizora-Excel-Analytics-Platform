@@ -80,17 +80,16 @@ const App = () => (
                   <Route path="chat" element={<ChatPage />} />
                   <Route path="history" element={<History />} />
                   <Route path="settings" element={<SettingsPage />} />
+                  {/* Admin route inside layout */}
+                  <Route
+                    path="admin"
+                    element={
+                      <AdminRoute>
+                        <AdminDashboard />
+                      </AdminRoute>
+                    }
+                  />
                 </Route>
-
-                {/* Admin routes */}
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  }
-                />
 
                 {/* Analysis History route */}
                 <Route
