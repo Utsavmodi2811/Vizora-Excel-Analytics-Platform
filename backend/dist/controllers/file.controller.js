@@ -3,11 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getFileStats = exports.deleteFile = exports.downloadFile = exports.uploadFile = exports.getUserFiles = void 0;
+exports.getFileData = exports.getFileStats = exports.deleteFile = exports.downloadFile = exports.uploadFile = exports.getUserFiles = void 0;
 const file_model_1 = require("../models/file.model");
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const xlsx_1 = __importDefault(require("xlsx"));
 // Configure multer for file upload
 const storage = multer_1.default.diskStorage({
     destination: (req, file, cb) => {
@@ -33,7 +34,7 @@ const upload = (0, multer_1.default)({ storage });
 const getUserFiles = async (req, res) => {
     var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
@@ -52,7 +53,7 @@ exports.getUserFiles = getUserFiles;
 const uploadFile = async (req, res) => {
     var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
@@ -97,7 +98,7 @@ exports.uploadFile = uploadFile;
 const downloadFile = async (req, res) => {
     var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
@@ -119,7 +120,7 @@ exports.downloadFile = downloadFile;
 const deleteFile = async (req, res) => {
     var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
@@ -147,7 +148,7 @@ exports.deleteFile = deleteFile;
 const getFileStats = async (req, res) => {
     var _a, _b;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         if (!userId) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
@@ -172,3 +173,39 @@ const getFileStats = async (req, res) => {
     }
 };
 exports.getFileStats = getFileStats;
+// Get file data for re-analysis
+const getFileData = async (req, res) => {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+        const file = await file_model_1.File.findOne({ _id: req.params.id, userId });
+        if (!file) {
+            return res.status(404).json({ message: 'File not found' });
+        }
+        // Parse the Excel data from the stored buffer
+        const workbook = xlsx_1.default.read(file.fileData, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = xlsx_1.default.utils.sheet_to_json(worksheet);
+        const columns = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+        res.json({
+            file: {
+                id: file._id,
+                fileName: file.originalName,
+                fileType: file.fileType,
+                fileSize: file.fileSize,
+                uploadDate: file.createdAt,
+                data: jsonData,
+                columns: columns
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error getting file data:', error);
+        res.status(500).json({ message: 'Error getting file data' });
+    }
+};
+exports.getFileData = getFileData;

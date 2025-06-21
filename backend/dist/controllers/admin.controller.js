@@ -3,32 +3,52 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.toggleUserBlock = exports.updateUserRole = exports.getAllUsers = exports.deleteUser = exports.blockUser = exports.getUsers = exports.getDashboardStats = void 0;
 const user_model_1 = require("../models/user.model");
 const analysis_model_1 = require("../models/analysis.model");
+const file_model_1 = require("../models/file.model");
 const getDashboardStats = async (req, res) => {
     try {
         const totalUsers = await user_model_1.User.countDocuments();
+        const totalFiles = await file_model_1.File.countDocuments();
         const totalAnalyses = await analysis_model_1.Analysis.countDocuments();
-        const chartTypes = await analysis_model_1.Analysis.aggregate([
+        // Get analysis types distribution
+        const analysisTypes = await analysis_model_1.Analysis.aggregate([
             {
                 $group: {
-                    _id: '$chartType',
+                    _id: '$analysisType',
                     count: { $sum: 1 }
                 }
             }
         ]);
+        // Get file types distribution
+        const fileTypes = await file_model_1.File.aggregate([
+            {
+                $group: {
+                    _id: '$fileType',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        const recentFiles = await file_model_1.File.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .populate('userId', 'name email');
         const recentAnalyses = await analysis_model_1.Analysis.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .populate('user', 'name email');
+            .populate('userId', 'name email');
         res.json({
             stats: {
                 totalUsers,
+                totalFiles,
                 totalAnalyses,
-                chartTypes
+                analysisTypes,
+                fileTypes
             },
+            recentFiles,
             recentAnalyses
         });
     }
     catch (error) {
+        console.error('Dashboard stats error:', error);
         res.status(500).json({ message: 'Error fetching dashboard stats' });
     }
 };
@@ -38,9 +58,28 @@ const getUsers = async (req, res) => {
         const users = await user_model_1.User.find()
             .select('-password')
             .sort({ createdAt: -1 });
-        res.json({ users });
+        // Map MongoDB _id to id for frontend compatibility
+        const mappedUsers = users.map(user => {
+            const now = new Date();
+            const lastActive = user.lastActive ? new Date(user.lastActive) : new Date();
+            const timeDiff = now.getTime() - lastActive.getTime();
+            const isCurrentlyActive = timeDiff < 5 * 60 * 1000; // 5 minutes threshold
+            return {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isBlocked: user.isBlocked,
+                lastActive: user.lastActive || new Date(),
+                isCurrentlyActive,
+                createdAt: user.createdAt,
+                registrationDate: user.createdAt // Use registration date instead of last login
+            };
+        });
+        res.json({ users: mappedUsers });
     }
     catch (error) {
+        console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Error fetching users' });
     }
 };

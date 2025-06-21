@@ -35,6 +35,11 @@ export const authAPI = {
     const response = await api.get('/auth/profile');
     return response.data;
   },
+
+  heartbeat: async () => {
+    const response = await api.post('/auth/heartbeat');
+    return response.data;
+  },
 };
 
 // Excel API

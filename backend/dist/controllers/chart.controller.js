@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAnalysisHistory = exports.downloadChart = exports.getChartData = void 0;
+exports.createChart = exports.getAnalysisHistory = exports.downloadChart = exports.getChartData = void 0;
 const analysis_model_1 = require("../models/analysis.model");
 const chart_utils_1 = require("../utils/chart.utils");
 const getChartData = async (req, res) => {
@@ -60,7 +60,7 @@ exports.downloadChart = downloadChart;
 const getAnalysisHistory = async (req, res) => {
     try {
         const analyses = await analysis_model_1.Analysis.find({ userId: req.user._id })
-            .select('fileName fileType fileSize analysisType status createdAt')
+            .select('fileName fileType fileSize analysisType status createdAt result')
             .sort({ createdAt: -1 });
         res.json({ analyses });
     }
@@ -70,3 +70,45 @@ const getAnalysisHistory = async (req, res) => {
     }
 };
 exports.getAnalysisHistory = getAnalysisHistory;
+const createChart = async (req, res) => {
+    try {
+        const { fileName, chartType, xAxis, yAxis, data } = req.body;
+        if (!fileName || !chartType || !xAxis || !yAxis || !data) {
+            return res.status(400).json({ message: 'Missing required parameters' });
+        }
+        // Create new analysis record
+        const analysis = new analysis_model_1.Analysis({
+            userId: req.user._id,
+            fileName: fileName,
+            fileType: 'xlsx', // Default file type
+            fileSize: 0, // We don't have the actual file size
+            analysisType: chartType,
+            status: 'completed',
+            result: {
+                chartType,
+                xAxis,
+                yAxis,
+                data
+            }
+        });
+        await analysis.save();
+        res.status(201).json({
+            message: 'Chart created successfully',
+            analysis: {
+                id: analysis._id,
+                fileName: analysis.fileName,
+                fileType: analysis.fileType,
+                fileSize: analysis.fileSize,
+                analysisType: analysis.analysisType,
+                status: analysis.status,
+                result: analysis.result,
+                createdAt: analysis.createdAt
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error creating chart:', error);
+        res.status(500).json({ message: 'Error creating chart' });
+    }
+};
+exports.createChart = createChart;

@@ -78,6 +78,15 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Update last active timestamp
+    try {
+      user.lastActive = new Date();
+      await user.save();
+    } catch (saveError) {
+      console.error('Error updating lastActive:', saveError);
+      // Continue with login even if lastActive update fails
+    }
+
     // Generate token with user role
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -118,9 +127,47 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Update last active timestamp
+    try {
+      user.lastActive = new Date();
+      await user.save();
+    } catch (saveError) {
+      console.error('Error updating lastActive:', saveError);
+      // Continue even if lastActive update fails
+    }
+
     res.json({ user });
   } catch (error) {
     console.error('Get current user error:', error);
     res.status(500).json({ message: 'Error getting user data' });
+  }
+};
+
+// Heartbeat endpoint to keep user active
+export const heartbeat = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update last active timestamp
+    try {
+      user.lastActive = new Date();
+      await user.save();
+    } catch (saveError) {
+      console.error('Error updating lastActive:', saveError);
+      // Continue even if lastActive update fails
+    }
+
+    res.json({ message: 'Heartbeat received' });
+  } catch (error) {
+    console.error('Heartbeat error:', error);
+    res.status(500).json({ message: 'Error updating heartbeat' });
   }
 }; 

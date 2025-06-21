@@ -1,34 +1,57 @@
 import { Request, Response } from 'express';
 import { User } from '../models/user.model';
 import { Analysis } from '../models/analysis.model';
+import { File } from '../models/file.model';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
     const totalUsers = await User.countDocuments();
+    const totalFiles = await File.countDocuments();
     const totalAnalyses = await Analysis.countDocuments();
-    const chartTypes = await Analysis.aggregate([
+    
+    // Get analysis types distribution
+    const analysisTypes = await Analysis.aggregate([
       {
         $group: {
-          _id: '$chartType',
+          _id: '$analysisType',
           count: { $sum: 1 }
         }
       }
     ]);
 
+    // Get file types distribution
+    const fileTypes = await File.aggregate([
+      {
+        $group: {
+          _id: '$fileType',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const recentFiles = await File.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('userId', 'name email');
+
     const recentAnalyses = await Analysis.find()
       .sort({ createdAt: -1 })
       .limit(5)
-      .populate('user', 'name email');
+      .populate('userId', 'name email');
 
     res.json({
       stats: {
         totalUsers,
+        totalFiles,
         totalAnalyses,
-        chartTypes
+        analysisTypes,
+        fileTypes
       },
+      recentFiles,
       recentAnalyses
     });
   } catch (error) {
+    console.error('Dashboard stats error:', error);
     res.status(500).json({ message: 'Error fetching dashboard stats' });
   }
 };
@@ -39,8 +62,29 @@ export const getUsers = async (req: Request, res: Response) => {
       .select('-password')
       .sort({ createdAt: -1 });
 
-    res.json({ users });
+    // Map MongoDB _id to id for frontend compatibility
+    const mappedUsers = users.map(user => {
+      const now = new Date();
+      const lastActive = user.lastActive ? new Date(user.lastActive) : new Date();
+      const timeDiff = now.getTime() - lastActive.getTime();
+      const isCurrentlyActive = timeDiff < 5 * 60 * 1000; // 5 minutes threshold
+      
+      return {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isBlocked: user.isBlocked,
+        lastActive: user.lastActive || new Date(),
+        isCurrentlyActive,
+        createdAt: user.createdAt,
+        registrationDate: user.createdAt // Use registration date instead of last login
+      };
+    });
+
+    res.json({ users: mappedUsers });
   } catch (error) {
+    console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Error fetching users' });
   }
 };

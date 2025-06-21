@@ -7,8 +7,14 @@ const express_1 = __importDefault(require("express"));
 const chart_controller_1 = require("../controllers/chart.controller");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = express_1.default.Router();
-// Protected routes
-router.get('/data/:analysisId', auth_middleware_1.auth, chart_controller_1.getChartData);
-router.get('/download/:analysisId', auth_middleware_1.auth, chart_controller_1.downloadChart);
-router.get('/history', auth_middleware_1.auth, chart_controller_1.getAnalysisHistory);
+// All routes require authentication
+router.use(auth_middleware_1.auth);
+// Get chart data
+router.get('/data/:analysisId', chart_controller_1.getChartData);
+// Download chart as image
+router.get('/download/:analysisId', chart_controller_1.downloadChart);
+// Get analysis history
+router.get('/history', chart_controller_1.getAnalysisHistory);
+// Create a new chart
+router.post('/create', chart_controller_1.createChart);
 exports.default = router;

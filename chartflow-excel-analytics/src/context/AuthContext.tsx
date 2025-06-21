@@ -78,6 +78,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  // Heartbeat mechanism to keep user active
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const heartbeatInterval = setInterval(async () => {
+      try {
+        await authAPI.heartbeat();
+      } catch (error) {
+        console.error('Heartbeat failed:', error);
+      }
+    }, 30000); // Send heartbeat every 30 seconds
+
+    return () => clearInterval(heartbeatInterval);
+  }, [token, user]);
+
   return (
     <AuthContext.Provider value={{ user, token, loading, error, login, register, logout }}>
       {children}

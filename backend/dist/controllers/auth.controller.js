@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCurrentUser = exports.login = exports.register = void 0;
+exports.heartbeat = exports.getCurrentUser = exports.login = exports.register = void 0;
 const user_model_1 = require("../models/user.model");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -28,8 +28,8 @@ const register = async (req, res) => {
             isBlocked: false
         });
         await user.save();
-        // Generate token
-        const token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
+        // Generate token with user role
+        const token = jsonwebtoken_1.default.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
         // Return user data without password
         const userData = {
             id: user._id,
@@ -68,8 +68,17 @@ const login = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
-        // Generate token
-        const token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
+        // Update last active timestamp
+        try {
+            user.lastActive = new Date();
+            await user.save();
+        }
+        catch (saveError) {
+            console.error('Error updating lastActive:', saveError);
+            // Continue with login even if lastActive update fails
+        }
+        // Generate token with user role
+        const token = jsonwebtoken_1.default.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
         // Return user data without password
         const userData = {
             id: user._id,
@@ -102,7 +111,16 @@ const getCurrentUser = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.json(user);
+        // Update last active timestamp
+        try {
+            user.lastActive = new Date();
+            await user.save();
+        }
+        catch (saveError) {
+            console.error('Error updating lastActive:', saveError);
+            // Continue even if lastActive update fails
+        }
+        res.json({ user });
     }
     catch (error) {
         console.error('Get current user error:', error);
@@ -110,3 +128,32 @@ const getCurrentUser = async (req, res) => {
     }
 };
 exports.getCurrentUser = getCurrentUser;
+// Heartbeat endpoint to keep user active
+const heartbeat = async (req, res) => {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        if (!userId) {
+            return res.status(401).json({ message: 'User not authenticated' });
+        }
+        const user = await user_model_1.User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        // Update last active timestamp
+        try {
+            user.lastActive = new Date();
+            await user.save();
+        }
+        catch (saveError) {
+            console.error('Error updating lastActive:', saveError);
+            // Continue even if lastActive update fails
+        }
+        res.json({ message: 'Heartbeat received' });
+    }
+    catch (error) {
+        console.error('Heartbeat error:', error);
+        res.status(500).json({ message: 'Error updating heartbeat' });
+    }
+};
+exports.heartbeat = heartbeat;

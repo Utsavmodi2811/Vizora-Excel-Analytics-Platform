@@ -27,8 +27,10 @@ interface User {
   email: string;
   role: 'user' | 'admin';
   isBlocked: boolean;
+  lastActive: string;
+  isCurrentlyActive: boolean;
   createdAt: string;
-  lastLogin?: string;
+  registrationDate: string;
 }
 
 export default function AdminDashboard() {
@@ -63,7 +65,7 @@ export default function AdminDashboard() {
         
         // Calculate stats using the users array
         const totalUsers = usersArray.length;
-        const activeUsers = usersArray.filter(u => !u.isBlocked).length;
+        const activeUsers = usersArray.filter(u => u.isCurrentlyActive).length;
         const adminUsers = usersArray.filter(u => u.role === 'admin').length;
         const blockedUsers = usersArray.filter(u => u.isBlocked).length;
         
@@ -243,14 +245,14 @@ export default function AdminDashboard() {
         <div className="flex flex-col md:flex-row gap-6 mb-8">
           <div className="flex-1 bg-white dark:bg-gray-900 rounded-lg shadow p-6 flex items-center justify-between">
             <div>
-              <div className="text-gray-500 text-sm">Total Uploads</div>
-              <div className="text-2xl font-bold">{dashboardStats.totalAnalyses}</div>
+              <div className="text-gray-500 text-sm">Total Files</div>
+              <div className="text-2xl font-bold">{dashboardStats.totalFiles}</div>
             </div>
             <FileUp className="w-8 h-8 text-blue-500" />
           </div>
           <div className="flex-1 bg-white dark:bg-gray-900 rounded-lg shadow p-6 flex items-center justify-between">
             <div>
-              <div className="text-gray-500 text-sm">Charts Created</div>
+              <div className="text-gray-500 text-sm">Total Analyses</div>
               <div className="text-2xl font-bold">{dashboardStats.totalAnalyses}</div>
             </div>
             <BarChart2 className="w-8 h-8 text-green-500" />
@@ -265,20 +267,46 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* --- Chart Type Statistics --- */}
-      {dashboardStats && dashboardStats.chartTypes && (
+      {/* --- Analysis Type Statistics --- */}
+      {dashboardStats && dashboardStats.analysisTypes && dashboardStats.analysisTypes.length > 0 && (
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-8">
-          <div className="mb-4">
-            <div className="text-lg font-semibold">Chart Type Statistics</div>
-            <div className="text-sm text-gray-500">Most popular chart types among users</div>
+          <div className="mb-6">
+            <div className="text-lg font-semibold">Analysis Type Statistics</div>
+            <div className="text-sm text-gray-500">Distribution of analysis types performed</div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {dashboardStats.chartTypes.map((ct: any) => (
-              <div key={ct._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <span className="font-medium text-gray-900 dark:text-white">{ct._id || 'Unknown'}</span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">{ct.count} created</span>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dashboardStats.analysisTypes.map((at: any, index: number) => {
+              const totalAnalyses = dashboardStats.totalAnalyses;
+              const percentage = totalAnalyses > 0 ? Math.round((at.count / totalAnalyses) * 100) : 0;
+              const colors = ['bg-emerald-500', 'bg-cyan-500', 'bg-pink-500', 'bg-yellow-500', 'bg-lime-500', 'bg-rose-500'];
+              const color = colors[index % colors.length];
+              
+              return (
+                <div key={at._id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${color}`}></div>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {at._id ? at._id.charAt(0).toUpperCase() + at._id.slice(1) : 'Unknown'}
+                      </span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+                      {at.count}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${color}`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-gray-500">{percentage}%</span>
+                    <span className="text-xs text-gray-500">of total analyses</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -315,9 +343,8 @@ export default function AdminDashboard() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Join Date</TableHead>
-                  <TableHead>Last Login</TableHead>
+                  <TableHead>Active Sessions</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -341,15 +368,15 @@ export default function AdminDashboard() {
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.isBlocked ? "destructive" : "default"}>
-                        {user.isBlocked ? "Blocked" : "Active"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${user.isCurrentlyActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                        <span className="text-xs text-gray-600 dark:text-gray-300">
+                          {user.isCurrentlyActive ? 'Online' : 'Offline'}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">

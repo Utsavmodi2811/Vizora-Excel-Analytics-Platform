@@ -65,6 +65,10 @@ const userSchema = new mongoose_1.Schema({
     isBlocked: {
         type: Boolean,
         default: false
+    },
+    lastActive: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true
