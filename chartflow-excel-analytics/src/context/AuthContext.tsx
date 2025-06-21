@@ -35,8 +35,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(user);
         } catch (err) {
           console.error('Error loading user:', err);
-          localStorage.removeItem('token');
-          setToken(null);
+          // Don't remove token immediately, just set loading to false
+          // This prevents infinite loading states
         }
       }
       setLoading(false);
