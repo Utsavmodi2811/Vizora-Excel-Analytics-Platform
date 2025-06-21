@@ -23,10 +23,10 @@ const Header = () => {
           </div>
           <div>
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-              Welcome back, {user?.name || 'User'}
+              Vizora Analytics
             </h2>
             <p className="text-gray-600 dark:text-gray-300">
-              Transform your Excel data into beautiful visualizations
+              Excel Data Visualization Platform
             </p>
           </div>
         </div>

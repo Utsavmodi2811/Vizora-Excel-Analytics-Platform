@@ -19,23 +19,48 @@ import {
   Sparkles,
   Clock,
   Database,
-  Activity
+  Activity,
+  ChevronDown,
+  ChevronUp,
+  LineChart,
+  ScatterChart,
+  AreaChart,
+  Radar,
+  Circle,
+  Layers3,
+  Target,
+  Zap,
+  Globe,
+  Box
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const History = () => {
   const { excelFiles, charts, deleteFile, deleteChart, loadFileData, loading } = useData();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // State for showing all items vs recent items
+  const [showAllFiles, setShowAllFiles] = useState(false);
+  const [showAllCharts, setShowAllCharts] = useState(false);
+
+  // Get recent items (5 most recent)
+  const recentFiles = excelFiles.slice(0, 5);
+  const recentCharts = charts.slice(0, 5);
+  
+  // Get items to display based on state
+  const displayedFiles = showAllFiles ? excelFiles : recentFiles;
+  const displayedCharts = showAllCharts ? charts : recentCharts;
 
   const handleDeleteFile = async (id: string, fileName: string) => {
     try {
       await deleteFile(id);
-      toast({
-        title: 'File Deleted',
-        description: `${fileName} has been removed`,
-      });
+    toast({
+      title: 'File Deleted',
+      description: `${fileName} has been removed`,
+    });
     } catch (error) {
       toast({
         title: 'Error',
@@ -48,10 +73,10 @@ const History = () => {
   const handleDeleteChart = async (id: string) => {
     try {
       await deleteChart(id);
-      toast({
-        title: 'Chart Deleted',
-        description: 'Chart has been removed from history',
-      });
+    toast({
+      title: 'Chart Deleted',
+      description: 'Chart has been removed from history',
+    });
     } catch (error) {
       toast({
         title: 'Error',
@@ -71,9 +96,26 @@ const History = () => {
       // Navigate to Analytics page
       navigate('/analytics');
     } catch (error) {
-      toast({
+    toast({
         title: 'Error',
         description: 'Failed to load file for analysis',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleViewChart = (chart: any) => {
+    try {
+      // Navigate to chart viewer with chart data in state
+      navigate('/chart-viewer', { state: { chart } });
+      toast({
+        title: 'Chart Opened',
+        description: `${chart.chartType} chart is now open for viewing`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to open chart',
         variant: 'destructive',
       });
     }
@@ -82,11 +124,36 @@ const History = () => {
   const getChartIcon = (chartType: string) => {
     switch (chartType.toLowerCase()) {
       case 'bar':
+      case '3d-bar':
         return BarChart3;
       case 'line':
-        return TrendingUp;
+      case '3d-line':
+        return LineChart;
       case 'pie':
+      case '3d-pie':
         return PieChart;
+      case 'scatter':
+      case '3d-scatter':
+        return ScatterChart;
+      case 'area':
+        return AreaChart;
+      case 'radar':
+      case 'spider':
+        return Radar;
+      case 'bubble':
+        return Circle;
+      case 'histogram':
+        return BarChart3;
+      case '3d-surface':
+        return Layers3;
+      case 'doughnut':
+        return Target;
+      case 'funnel':
+        return Zap;
+      case 'map':
+        return Globe;
+      case '3d-scatter':
+        return Box;
       default:
         return BarChart3;
     }
@@ -95,11 +162,34 @@ const History = () => {
   const getChartColor = (chartType: string) => {
     switch (chartType.toLowerCase()) {
       case 'bar':
+      case '3d-bar':
         return 'from-blue-500 to-blue-600';
       case 'line':
+      case '3d-line':
         return 'from-green-500 to-green-600';
       case 'pie':
+      case '3d-pie':
         return 'from-purple-500 to-purple-600';
+      case 'scatter':
+      case '3d-scatter':
+        return 'from-orange-500 to-orange-600';
+      case 'area':
+        return 'from-teal-500 to-teal-600';
+      case 'radar':
+      case 'spider':
+        return 'from-pink-500 to-pink-600';
+      case 'bubble':
+        return 'from-indigo-500 to-indigo-600';
+      case 'histogram':
+        return 'from-cyan-500 to-cyan-600';
+      case '3d-surface':
+        return 'from-violet-500 to-violet-600';
+      case 'doughnut':
+        return 'from-amber-500 to-amber-600';
+      case 'funnel':
+        return 'from-red-500 to-red-600';
+      case 'map':
+        return 'from-emerald-500 to-emerald-600';
       default:
         return 'from-gray-500 to-gray-600';
     }
@@ -108,68 +198,92 @@ const History = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-            <Loader2 className="h-8 w-8 animate-spin text-white" />
-          </div>
-          <p className="text-gray-600 dark:text-gray-300">Loading your data...</p>
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p>Loading history...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 p-6">
-      {/* Hero Section */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-            <HistoryIcon className="w-8 h-8 text-white" />
+    <div className="space-y-6 p-6">
+      {/* Enhanced Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <HistoryIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">History & Analytics 📊</h1>
+              <p className="text-blue-100">View your uploaded files and created charts</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
-              Your History
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              View and manage your uploaded files and created charts
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <FileText className="w-3 h-3 inline mr-1" />
+              {excelFiles.length} files
+            </div>
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <BarChart3 className="w-3 h-3 inline mr-1" />
+              {charts.length} charts
+            </div>
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <Activity className="w-3 h-3 inline mr-1" />
+              Recent activity
+            </div>
           </div>
         </div>
-        
-        <div className="flex items-center justify-center gap-4">
-          <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            <Database className="w-3 h-3 mr-1" />
-            {excelFiles.length} Files
-          </Badge>
-          <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-            <BarChart3 className="w-3 h-3 mr-1" />
-            {charts.length} Charts
-          </Badge>
-          <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-            <Activity className="w-3 h-3 mr-1" />
-            Active
-          </Badge>
-        </div>
+        {/* Simple decorative elements */}
+        <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full animate-pulse"></div>
+        <div className="absolute bottom-4 right-8 text-3xl opacity-20">📈</div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Recent Activity Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Uploaded Files */}
         <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
           <CardHeader className="pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-white" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Uploaded Files</CardTitle>
+                  <p className="text-sm text-gray-500">
+                    {showAllFiles ? `${excelFiles.length} files uploaded` : `Recent ${Math.min(5, excelFiles.length)} of ${excelFiles.length} files`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-xl">Uploaded Files</CardTitle>
-                <p className="text-sm text-gray-500">{excelFiles.length} files uploaded</p>
-              </div>
+              {excelFiles.length > 5 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAllFiles(!showAllFiles)}
+                  className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
+                >
+                  {showAllFiles ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Show Recent
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      View All
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
             {excelFiles.length > 0 ? (
               <div className="space-y-4">
-                {excelFiles.map((file, index) => (
+                {displayedFiles.map((file, index) => (
                   <div 
                     key={file.id} 
                     className="bg-white dark:bg-gray-800 border-0 rounded-xl p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
@@ -198,10 +312,10 @@ const History = () => {
                         <div className="flex flex-wrap gap-2">
                           <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
                             {file.fileType}
-                          </Badge>
+                            </Badge>
                           <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
                             Ready
-                          </Badge>
+                            </Badge>
                         </div>
                       </div>
                       <div className="flex gap-2 ml-4">
@@ -241,31 +355,56 @@ const History = () => {
         {/* Created Charts */}
         <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
           <CardHeader className="pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Created Charts</CardTitle>
+                  <p className="text-sm text-gray-500">
+                    {showAllCharts ? `${charts.length} charts created` : `Recent ${Math.min(5, charts.length)} of ${charts.length} charts`}
+                  </p>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-xl">Created Charts</CardTitle>
-                <p className="text-sm text-gray-500">{charts.length} charts created</p>
-              </div>
+              {charts.length > 5 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAllCharts(!showAllCharts)}
+                  className="flex items-center gap-2 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-600 transition-colors"
+                >
+                  {showAllCharts ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Show Recent
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      View All
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
             {charts.length > 0 ? (
               <div className="space-y-4">
-                {charts.map((chart, index) => {
+                {displayedCharts.map((chart, index) => {
                   const ChartIcon = getChartIcon(chart.chartType);
                   const chartColor = getChartColor(chart.chartType);
                   
                   return (
                     <div 
                       key={chart.id} 
-                      className="bg-white dark:bg-gray-800 border-0 rounded-xl p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+                      className="bg-white dark:bg-gray-800 border-0 rounded-xl p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
                       style={{ animationDelay: `${index * 100}ms` }}
+                      onClick={() => handleViewChart(chart)}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
                           <div className="flex items-center gap-3 mb-3">
                             <div className={`w-10 h-10 bg-gradient-to-r ${chartColor} rounded-lg flex items-center justify-center`}>
                               <ChartIcon className="w-5 h-5 text-white" />
@@ -273,21 +412,21 @@ const History = () => {
                             <div>
                               <div className="flex items-center gap-2 mb-1">
                                 <Badge variant="outline" className="capitalize text-xs bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                                  {chart.chartType}
-                                </Badge>
+                            {chart.chartType}
+                          </Badge>
                                 <Badge variant={chart.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                                   {chart.status}
                                 </Badge>
                               </div>
                               <h3 className="font-semibold text-gray-900 dark:text-white">
-                                {chart.xAxis} vs {chart.yAxis}
-                              </h3>
-                            </div>
+                            {chart.xAxis} vs {chart.yAxis}
+                          </h3>
+                        </div>
                           </div>
                           <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
                             <p className="flex items-center gap-1">
                               <FileText className="w-3 h-3" />
-                              {chart.fileName}
+                              {chart.fileName || 'Unknown File'}
                             </p>
                             <p className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
@@ -297,20 +436,34 @@ const History = () => {
                               <Activity className="w-3 h-3" />
                               {chart.data.length} data points
                             </p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteChart(chart.id)}
-                            className="hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
                         </div>
                       </div>
+                      <div className="flex gap-2 ml-4">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewChart(chart);
+                          }}
+                          className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteChart(chart.id);
+                          }}
+                            className="hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
+                  </div>
                   );
                 })}
               </div>
@@ -326,47 +479,6 @@ const History = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      {excelFiles.length > 0 && (
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Quick Actions</CardTitle>
-                <p className="text-sm text-gray-500">Get started with your data</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              <Button 
-                onClick={() => navigate('/upload')}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-              >
-                <span className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Upload New File
-                </span>
-              </Button>
-              <Button 
-                onClick={() => navigate('/analytics')}
-                variant="outline"
-                className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-300 transform hover:-translate-y-1"
-              >
-                <span className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Create New Chart
-                  <ArrowRight className="w-4 h-4" />
-                </span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

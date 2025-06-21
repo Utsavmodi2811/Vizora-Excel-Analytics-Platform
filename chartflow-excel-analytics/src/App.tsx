@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Analytics from "./pages/Analytics";
 import History from "./pages/History";
+import ChartViewer from "./pages/ChartViewer";
 import AdminDashboard from "./pages/AdminDashboard";
 import ChatPage from "./pages/ChatPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -144,6 +145,7 @@ const App = () => (
                     <Route path="analytics" element={<Analytics />} />
                     <Route path="chat" element={<ChatPage />} />
                     <Route path="history" element={<History />} />
+                    <Route path="chart-viewer" element={<ChartViewer />} />
                     <Route path="settings" element={<SettingsPage />} />
                     {/* Admin route inside layout */}
                     <Route

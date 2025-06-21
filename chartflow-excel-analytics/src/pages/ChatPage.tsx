@@ -1,53 +1,34 @@
 import React from 'react';
 import ChatWithFile from '@/components/ChatWithFile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, Sparkles, TrendingUp, Target, Lightbulb } from 'lucide-react';
+import { Bot, Sparkles, Brain } from 'lucide-react';
 
 const ChatPage = () => {
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6">
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Bot className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-            Chat with Your Data
-          </h1>
-          <Sparkles className="w-8 h-8 text-primary" />
+    <div className="space-y-6 p-6">
+      {/* Simple Welcome Section */}
+      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <Brain className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Chat with Your Data 🤖</h1>
+              <p className="text-purple-100">AI-powered insights and analysis</p>
+            </div>
+          </div>
         </div>
-        <p className="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
-          Ask questions and get AI-powered insights about your uploaded files. 
-          Discover patterns, trends, and recommendations instantly.
-        </p>
+        {/* Simple decorative elements */}
+        <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full animate-pulse"></div>
+        <div className="absolute bottom-4 right-8 text-3xl opacity-20">💬</div>
       </div>
 
-      {/* Feature highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-        <Card className="text-center p-4">
-          <CardContent className="p-4">
-            <TrendingUp className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-            <h3 className="font-semibold mb-1">Trend Analysis</h3>
-            <p className="text-sm text-muted-foreground">Discover patterns and trends in your data</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center p-4">
-          <CardContent className="p-4">
-            <Target className="w-8 h-8 mx-auto mb-2 text-green-500" />
-            <h3 className="font-semibold mb-1">Outlier Detection</h3>
-            <p className="text-sm text-muted-foreground">Identify unusual data points and anomalies</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center p-4">
-          <CardContent className="p-4">
-            <Lightbulb className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
-            <h3 className="font-semibold mb-1">Smart Recommendations</h3>
-            <p className="text-sm text-muted-foreground">Get chart and analysis suggestions</p>
-          </CardContent>
-        </Card>
+      {/* Chat Interface */}
+      <div className="animate-in fade-in duration-500">
+        <ChatWithFile />
       </div>
-
-      <ChatWithFile />
     </div>
   );
 };

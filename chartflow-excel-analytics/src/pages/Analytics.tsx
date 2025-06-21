@@ -1,16 +1,19 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Area, AreaChart, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Area, AreaChart, Legend, ScatterChart as ReScatterChart, Scatter, ZAxis, RadarChart as ReRadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Download, FileImage, BarChart3, Box, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, FileImage, BarChart3, Box, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import Chart3D from '@/components/Chart3D';
 import DataSummaryPanel from '@/components/DataSummaryPanel';
 import ChartCustomization from '@/components/ChartCustomization';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
 
@@ -43,13 +46,64 @@ const Analytics = () => {
   const [enableAnimation, setEnableAnimation] = useState(true);
   const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
   const [isAISummaryOpen, setIsAISummaryOpen] = useState(false);
+  const [showCleaner, setShowCleaner] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
 
   if (!currentData || !fileName) {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        <div className="text-center px-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Vizora Analytics Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Please upload an Excel file first to start creating charts.</p>
+      <div className="space-y-6 p-6">
+        {/* Enhanced Welcome Section for Empty State */}
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <BarChart3 className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">Vizora Analytics Dashboard 📊</h1>
+                <p className="text-blue-100">Transform your data into beautiful visualizations</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+                <Sparkles className="w-3 h-3 inline mr-1" />
+                Ready to Create
+              </div>
+            </div>
+          </div>
+          {/* Animated background elements */}
+          <div className="absolute top-4 right-4 w-20 h-20 bg-white/10 rounded-full animate-pulse"></div>
+          <div className="absolute bottom-4 right-8 w-16 h-16 bg-white/5 rounded-full animate-bounce"></div>
+          <div className="absolute top-1/2 right-1/4 w-12 h-12 bg-white/5 rounded-full animate-ping"></div>
+          {/* Decorative elements */}
+          <div className="absolute top-8 right-16 text-4xl opacity-20">📈</div>
+          <div className="absolute bottom-8 right-24 text-3xl opacity-20">📊</div>
+          <div className="absolute top-1/3 right-32 text-2xl opacity-20">🎯</div>
+        </div>
+
+        <div className="text-center py-12">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <BarChart3 className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Ready to Create Amazing Charts?</h3>
+          <p className="text-gray-600 dark:text-gray-300 text-lg mb-6 max-w-md mx-auto">
+            Upload an Excel file to unlock powerful analytics and visualization tools.
+          </p>
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              Multiple Chart Types
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              2D & 3D Visualizations
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+              AI-Powered Insights
+            </div>
+          </div>
         </div>
         <DataSummaryPanel data={[]} fileName="" />
       </div>
@@ -58,13 +112,27 @@ const Analytics = () => {
 
   const columns = currentData.length > 0 ? Object.keys(currentData[0]) : [];
 
+  useEffect(() => {
+    if (columns.length > 0) setSelectedColumns(columns);
+  }, [fileName, columns.length]);
+
+  useEffect(() => {
+    if (selectedXAxis && !selectedColumns.includes(selectedXAxis)) setSelectedXAxis('');
+    if (selectedYAxis && !selectedColumns.includes(selectedYAxis)) setSelectedYAxis('');
+  }, [selectedColumns]);
+
   const processChartData = () => {
     if (!selectedXAxis || !selectedYAxis) return [];
     
-    return currentData.map((row: any) => ({
-      name: String(row[selectedXAxis]),
-      value: Number(row[selectedYAxis]) || 0,
-    }));
+    return currentData.map((row: any) => {
+      const filteredRow: any = {};
+      selectedColumns.forEach(col => { filteredRow[col] = row[col]; });
+      return {
+        name: String(row[selectedXAxis]),
+        value: Number(row[selectedYAxis]) || 0,
+        ...filteredRow
+      };
+    });
   };
 
   const chartData = processChartData();
@@ -141,6 +209,18 @@ const Analytics = () => {
     if (chartData.length === 0) return null;
 
     if (show3D) {
+      if (chart3DType === '3d-surface') {
+        return (
+          <div className="flex items-center justify-center h-64 sm:h-80 lg:h-96 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-400 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Box className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-purple-700 dark:text-purple-300 text-sm font-semibold">3D Surface Chart Coming Soon</p>
+            </div>
+          </div>
+        );
+      }
       return <Chart3D data={chartData} type={chart3DType} color={chartStyle.color} />;
     }
 
@@ -284,35 +364,150 @@ const Analytics = () => {
           </ResponsiveContainer>
         );
         
+      case 'scatter':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <ReScatterChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              {showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis dataKey="name" tick={{ fontSize: fontSize }} style={{ fontFamily: chartStyle.fontFamily }} />
+              <YAxis tick={{ fontSize: fontSize }} style={{ fontFamily: chartStyle.fontFamily }} />
+              <ZAxis dataKey="value" range={[0, 100]} />
+              <Tooltip contentStyle={{ fontFamily: chartStyle.fontFamily, fontSize: fontSize }} />
+              {showLegend && <Legend />}
+              <Scatter name="Data" dataKey="value" fill={chartStyle.color} />
+            </ReScatterChart>
+          </ResponsiveContainer>
+        );
+        
+      case 'radar':
+        if (selectedColumns.length < 3) {
+          return <div className="text-center text-xs text-gray-500">Select at least 3 columns for Radar Chart</div>;
+        }
+        const radarData = selectedColumns.map(col => ({
+          axis: col,
+          value: Number(currentData[0]?.[col]) || 0
+        }));
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <ReRadarChart data={radarData}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="axis" style={{ fontFamily: chartStyle.fontFamily, fontSize }} />
+              <PolarRadiusAxis angle={30} domain={[0, Math.max(...radarData.map(d => d.value), 1)]} />
+              <Radar name="Row 1" dataKey="value" stroke={chartStyle.color} fill={chartStyle.color} fillOpacity={0.6} />
+              <Tooltip />
+            </ReRadarChart>
+          </ResponsiveContainer>
+        );
+        
+      case 'bubble': {
+        const sizeKey = selectedColumns.find(col => col !== selectedXAxis && col !== selectedYAxis && typeof currentData[0]?.[col] === 'number');
+        if (!selectedXAxis || !selectedYAxis || !sizeKey) {
+          return <div className="text-center text-xs text-gray-500">Select X, Y, and at least one more numeric column for Bubble Chart</div>;
+        }
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <ReScatterChart data={currentData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              {showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis dataKey={selectedXAxis} tick={{ fontSize }} style={{ fontFamily: chartStyle.fontFamily }} />
+              <YAxis dataKey={selectedYAxis} tick={{ fontSize }} style={{ fontFamily: chartStyle.fontFamily }} />
+              <ZAxis dataKey={sizeKey} range={[50, 400]} name={sizeKey} />
+              <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+              {showLegend && <Legend />}
+              <Scatter name="Data" fill={chartStyle.color} />
+            </ReScatterChart>
+          </ResponsiveContainer>
+        );
+      }
+      case 'histogram': {
+        const histKey = selectedYAxis || selectedColumns.find(col => typeof currentData[0]?.[col] === 'number');
+        if (!histKey) {
+          return <div className="text-center text-xs text-gray-500">Select a numeric column for Histogram</div>;
+        }
+        const values = currentData.map(row => Number(row[histKey])).filter(v => !isNaN(v));
+        if (values.length === 0) {
+          return <div className="text-center text-xs text-gray-500">No numeric data for Histogram</div>;
+        }
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const binCount = 10;
+        const binSize = (max - min) / binCount || 1;
+        const bins = Array.from({ length: binCount }, (_, i) => ({
+          bin: `${(min + i * binSize).toFixed(1)} - ${(min + (i + 1) * binSize).toFixed(1)}`,
+          count: 0
+        }));
+        values.forEach(v => {
+          const idx = Math.min(Math.floor((v - min) / binSize), binCount - 1);
+          bins[idx].count++;
+        });
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={bins} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="bin" tick={{ fontSize }} style={{ fontFamily: chartStyle.fontFamily }} />
+              <YAxis tick={{ fontSize }} style={{ fontFamily: chartStyle.fontFamily }} />
+              <Tooltip />
+              <Bar dataKey="count" fill={chartStyle.color} />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      }
       default:
         return null;
     }
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
-      <div className="text-center px-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Vizora Analytics Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base break-words">
-          Create beautiful charts from your Excel data: <span className="font-medium">{fileName}</span>
-        </p>
+    <div className="space-y-6 p-6">
+      {/* Enhanced Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <BarChart3 className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Vizora Analytics Dashboard 📊</h1>
+              <p className="text-blue-100">Creating charts from: <span className="font-semibold">{fileName}</span></p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              {currentData.length} records
+            </div>
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <BarChart3 className="w-3 h-3 inline mr-1" />
+              {Object.keys(currentData[0] || {}).length} columns
+            </div>
+          </div>
+        </div>
+        {/* Simple decorative elements */}
+        <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full animate-pulse"></div>
+        <div className="absolute bottom-4 right-8 text-3xl opacity-20">📈</div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-        <div className="xl:col-span-2 space-y-4 sm:space-y-6">
-          <Card className="shadow-lg border-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 space-y-6">
+          {/* Enhanced Chart Configuration Card */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
-                Chart Configuration
+              <CardTitle className="text-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Chart Configuration</h2>
+                  <p className="text-sm text-gray-500">Configure your visualization settings</p>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Chart Type</label>
                   <Select value={chartType} onValueChange={setChartType}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-10 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -320,6 +515,10 @@ const Analytics = () => {
                       <SelectItem value="line">Line Chart</SelectItem>
                       <SelectItem value="area">Area Chart</SelectItem>
                       <SelectItem value="pie">Pie Chart</SelectItem>
+                      <SelectItem value="scatter">Scatter Plot</SelectItem>
+                      <SelectItem value="radar">Radar/Spider Chart</SelectItem>
+                      <SelectItem value="bubble">Bubble Chart</SelectItem>
+                      <SelectItem value="histogram">Histogram</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -327,11 +526,11 @@ const Analytics = () => {
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">X Axis</label>
                   <Select value={selectedXAxis} onValueChange={setSelectedXAxis}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-10 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400">
                       <SelectValue placeholder="Select X axis" />
                     </SelectTrigger>
                     <SelectContent>
-                      {columns.map((column) => (
+                      {selectedColumns.map((column) => (
                         <SelectItem key={column} value={column}>
                           {column}
                         </SelectItem>
@@ -343,11 +542,11 @@ const Analytics = () => {
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Y Axis</label>
                   <Select value={selectedYAxis} onValueChange={setSelectedYAxis}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-10 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400">
                       <SelectValue placeholder="Select Y axis" />
                     </SelectTrigger>
                     <SelectContent>
-                      {columns.map((column) => (
+                      {selectedColumns.map((column) => (
                         <SelectItem key={column} value={column}>
                           {column}
                         </SelectItem>
@@ -356,34 +555,49 @@ const Analytics = () => {
                   </Select>
                 </div>
 
-                <div className="flex items-end">
+                <div className="flex flex-col gap-2 items-end">
                   <Button 
                     onClick={handleCreateChart}
-                    className="w-full h-10 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium"
+                    className="w-full h-10 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                     disabled={!selectedXAxis || !selectedYAxis}
                   >
                     Save to History
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-9 mt-1 text-xs border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+                    onClick={() => setShowCleaner(true)}
+                  >
+                    Preview & Clean Data
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Enhanced Chart Display Card */}
           {chartData.length > 0 && (
-            <Card className="shadow-lg border-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 animate-in fade-in duration-500">
               <CardHeader className="pb-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                    {show3D ? <Box className="h-5 w-5 text-purple-600" /> : <BarChart3 className="h-5 w-5 text-blue-600" />}
-                    {show3D ? `3D ${chart3DType.replace('3d-', '').replace('-', ' ')} Chart` : 
-                    `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`}
+                  <CardTitle className="text-xl flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                      {show3D ? <Box className="h-5 w-5 text-white" /> : <BarChart3 className="h-5 w-5 text-white" />}
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold">
+                        {show3D ? `3D ${chart3DType.replace('3d-', '').replace('-', ' ')} Chart` : 
+                        `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`}
+                      </h2>
+                      <p className="text-sm text-gray-500">Live preview of your visualization</p>
+                    </div>
                   </CardTitle>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant={show3D ? "default" : "outline"}
                       size="sm"
                       onClick={() => setShow3D(!show3D)}
-                      className="text-xs sm:text-sm"
+                      className="text-xs sm:text-sm transition-all duration-200 hover:scale-105"
                     >
                       {show3D ? '2D View' : '3D View'}
                     </Button>
@@ -395,6 +609,7 @@ const Analytics = () => {
                         <SelectContent>
                           <SelectItem value="3d-bar">3D Bar</SelectItem>
                           <SelectItem value="3d-scatter">3D Scatter</SelectItem>
+                          <SelectItem value="3d-surface">3D Surface</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -404,7 +619,7 @@ const Analytics = () => {
               <CardContent>
                 <div 
                   ref={chartRef} 
-                  className="w-full p-2 sm:p-4 rounded-lg"
+                  className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm"
                   style={{
                     backgroundColor: chartStyle.backgroundColor || '#ffffff',
                     border: `${chartStyle.borderWidth || 1}px solid ${chartStyle.borderColor || '#e5e7eb'}`,
@@ -418,27 +633,32 @@ const Analytics = () => {
           )}
         </div>
 
-        <div className="space-y-4 sm:space-y-6">
-          {/* Chart Customization - Collapsible */}
-          <Card className="shadow-lg border-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+        <div className="space-y-6">
+          {/* Enhanced Chart Customization Card */}
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
             <CardHeader 
-              className="pb-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              className="pb-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-t-lg"
               onClick={() => setIsCustomizeOpen(!isCustomizeOpen)}
             >
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-blue-600" />
-                  Customize Chart Style
+                <CardTitle className="text-lg flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Customize Chart Style</h3>
+                    <p className="text-sm text-gray-500">Personalize your visualization</p>
+                  </div>
                 </CardTitle>
                 {isCustomizeOpen ? (
-                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                  <ChevronUp className="h-5 w-5 text-gray-500 transition-transform duration-200" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                  <ChevronDown className="h-5 w-5 text-gray-500 transition-transform duration-200" />
                 )}
               </div>
             </CardHeader>
             {isCustomizeOpen && (
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 animate-in slide-in-from-top-2 duration-300">
                 <ChartCustomization 
                   onStyleChange={setChartStyle}
                   onExport={handleExport}
@@ -453,26 +673,34 @@ const Analytics = () => {
             )}
           </Card>
 
-          {/* AI Data Summary - Collapsible */}
-          <Card className="shadow-lg border-0 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
+          {/* Enhanced AI Data Summary Card */}
+          <Card className="border-0 shadow-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900 hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02]">
             <CardHeader 
-              className="pb-3 cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+              className="pb-3 cursor-pointer hover:bg-white/10 transition-colors rounded-t-lg"
               onClick={() => setIsAISummaryOpen(!isAISummaryOpen)}
             >
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-indigo-600" />
-                  AI Data Summary
-                </CardTitle>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-black animate-pulse" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg flex items-center gap-2 text-white">
+                      AI Data Summary
+                      <Badge className="bg-yellow-400 text-black px-2 py-0.5 rounded-full text-xs font-semibold">AI</Badge>
+                    </CardTitle>
+                    <p className="text-sm text-white/80">Smart analysis and insights</p>
+                  </div>
+                </div>
                 {isAISummaryOpen ? (
-                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                  <ChevronUp className="h-5 w-5 text-white transition-transform duration-200" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                  <ChevronDown className="h-5 w-5 text-white transition-transform duration-200" />
                 )}
               </div>
             </CardHeader>
             {isAISummaryOpen && (
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 animate-in slide-in-from-top-2 duration-300">
                 <div className="max-h-[300px] overflow-y-auto">
                   <DataSummaryPanel data={currentData} fileName={fileName} />
                 </div>
@@ -481,6 +709,58 @@ const Analytics = () => {
           </Card>
         </div>
       </div>
+
+      {/* Data Cleaner Modal */}
+      <Dialog open={showCleaner} onOpenChange={setShowCleaner}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Preview & Clean Data</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border text-xs">
+              <thead>
+                <tr>
+                  {columns.map(col => (
+                    <th key={col} className="px-2 py-1 border-b bg-gray-50 dark:bg-gray-800">
+                      <Checkbox
+                        checked={selectedColumns.includes(col)}
+                        onCheckedChange={checked => {
+                          setSelectedColumns(checked
+                            ? [...selectedColumns, col]
+                            : selectedColumns.filter(c => c !== col)
+                          );
+                        }}
+                        id={`col-check-${col}`}
+                      />
+                      <label htmlFor={`col-check-${col}`} className="ml-1 cursor-pointer">{col}</label>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {currentData.slice(0, 10).map((row, i) => (
+                  <tr key={i} className="border-t">
+                    {columns.map(col => (
+                      <td key={col} className="px-2 py-1 text-center truncate max-w-[120px]">{String(row[col])}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="text-xs text-gray-500 mt-2">Showing first 10 rows. Uncheck columns to exclude from chart data.</div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <DialogClose asChild>
+              <Button variant="outline" size="sm">Close</Button>
+            </DialogClose>
+            <DialogClose asChild>
+              <Button size="sm" onClick={() => setShowCleaner(false)}>
+                Done
+              </Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

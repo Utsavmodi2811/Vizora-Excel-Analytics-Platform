@@ -123,43 +123,43 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const uploadResponse = await fileAPI.uploadFile(file);
         
         // Parse file data for frontend use
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = e.target?.result;
-            const workbook = XLSX.read(data, { type: 'binary' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-            
-            if (jsonData.length === 0) {
-              reject(new Error('Excel file is empty'));
-              return;
-            }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          if (jsonData.length === 0) {
+            reject(new Error('Excel file is empty'));
+            return;
+          }
 
-            const columns = Object.keys(jsonData[0] as object);
-            
-            const newFile: ExcelData = {
+          const columns = Object.keys(jsonData[0] as object);
+          
+          const newFile: ExcelData = {
               id: uploadResponse.file.id,
-              fileName: file.name,
-              data: jsonData,
-              columns,
-              uploadDate: new Date(),
+            fileName: file.name,
+            data: jsonData,
+            columns,
+            uploadDate: new Date(),
               fileType: file.type,
               fileSize: file.size
-            };
+          };
 
-            setExcelFiles(prev => [...prev, newFile]);
-            setCurrentDataState(jsonData);
-            setFileName(file.name);
-            resolve();
-          } catch (error) {
-            reject(new Error('Failed to parse Excel file'));
-          }
-        };
+          setExcelFiles(prev => [...prev, newFile]);
+          setCurrentDataState(jsonData);
+          setFileName(file.name);
+          resolve();
+        } catch (error) {
+          reject(new Error('Failed to parse Excel file'));
+        }
+      };
 
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsBinaryString(file);
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsBinaryString(file);
       } catch (error) {
         reject(error);
       }
@@ -180,7 +180,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       // Add the new chart to local state
-      const newChart: Chart = {
+    const newChart: Chart = {
         id: response.analysis.id,
         fileName: response.analysis.fileName,
         chartType: response.analysis.analysisType,
@@ -189,9 +189,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         data: response.analysis.result.data,
         createdDate: new Date(response.analysis.createdAt),
         status: response.analysis.status
-      };
+    };
 
-      setCharts(prev => [...prev, newChart]);
+    setCharts(prev => [...prev, newChart]);
     } catch (error) {
       console.error('Error creating chart:', error);
       throw error;
@@ -230,9 +230,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     try {
       await fileAPI.deleteFile(id);
-      setExcelFiles(prev => prev.filter(file => file.id !== id));
+    setExcelFiles(prev => prev.filter(file => file.id !== id));
       // Also remove charts associated with this file
-      setCharts(prev => prev.filter(chart => chart.fileName !== excelFiles.find(f => f.id === id)?.fileName));
+    setCharts(prev => prev.filter(chart => chart.fileName !== excelFiles.find(f => f.id === id)?.fileName));
     } catch (error) {
       console.error('Error deleting file:', error);
       throw error;
@@ -244,7 +244,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     try {
       // Here you would typically call the backend to delete the chart
-      setCharts(prev => prev.filter(chart => chart.id !== id));
+    setCharts(prev => prev.filter(chart => chart.id !== id));
     } catch (error) {
       console.error('Error deleting chart:', error);
       throw error;

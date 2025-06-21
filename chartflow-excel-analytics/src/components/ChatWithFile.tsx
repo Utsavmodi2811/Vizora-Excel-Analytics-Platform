@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/sonner';
-import { Bot, User, Send, Loader2, Sparkles, TrendingUp, TrendingDown, BarChart3, Zap, Lightbulb, Target } from 'lucide-react';
+import { Bot, User, Send, Loader2, Sparkles, TrendingUp, TrendingDown, BarChart3, Zap, Lightbulb, Target, MessageSquare } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -376,18 +376,27 @@ I've analyzed your ${fileName} dataset with ${analysis.totalRows} records and ${
 
   if (!currentData) {
     return (
-      <Card className="w-full max-w-6xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5" />
-            Chat with Your Data
+      <Card className="w-full max-w-6xl mx-auto border-0 shadow-lg">
+        <CardHeader className="border-b">
+          <CardTitle className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Chat with Your Data</h2>
+              <p className="text-sm text-gray-500">AI-powered data analysis</p>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <Bot className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground text-lg">Please upload a file first to start chatting with your data.</p>
-            <p className="text-sm text-muted-foreground mt-2">Upload an Excel file to unlock AI-powered data insights</p>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Bot className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Ready to Chat with Your Data?</h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Upload an Excel file to unlock AI-powered insights.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -396,87 +405,103 @@ I've analyzed your ${fileName} dataset with ${analysis.totalRows} records and ${
 
   return (
     <div className="w-full max-w-7xl mx-auto">
-      <Card className="h-[85vh] flex flex-col">
+      <Card className="h-[85vh] flex flex-col border-0 shadow-lg">
         <CardHeader className="border-b flex-shrink-0">
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5" />
-            Chat with {fileName}
-            <Badge variant="secondary" className="ml-2">
-              {currentData?.length || 0} records
-            </Badge>
+          <CardTitle className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Chat with {fileName}</h2>
+              <p className="text-sm text-gray-500">{currentData?.length || 0} records available</p>
+            </div>
           </CardTitle>
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
           <ScrollArea ref={scrollAreaRef} className="flex-1 p-6">
             {messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-12">
-                <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">Start Your Data Conversation</h3>
-                <p className="mb-6">Ask me anything about your data to get AI-powered insights</p>
+              <div className="text-center text-gray-600 dark:text-gray-300 py-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Start Your Data Conversation</h3>
+                <p className="mb-6 text-gray-600 dark:text-gray-400">Ask me anything about your data</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                  <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setInputMessage('Give me a summary')}>
+                  <div 
+                    className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer" 
+                    onClick={() => setInputMessage('Give me a summary')}
+                  >
                     <div className="flex items-center gap-2 mb-2">
-                      <BarChart3 className="w-4 h-4" />
+                      <BarChart3 className="w-4 h-4 text-blue-500" />
                       <span className="font-medium">Data Summary</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Get an overview of your dataset</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Get an overview of your dataset</p>
                   </div>
                   
-                  <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setInputMessage('What trends do you see?')}>
+                  <div 
+                    className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer" 
+                    onClick={() => setInputMessage('What trends do you see?')}
+                  >
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4" />
+                      <TrendingUp className="w-4 h-4 text-green-500" />
                       <span className="font-medium">Trend Analysis</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Discover patterns and trends</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Discover patterns and trends</p>
                   </div>
                   
-                  <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setInputMessage('Find outliers')}>
+                  <div 
+                    className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer" 
+                    onClick={() => setInputMessage('Find outliers')}
+                  >
                     <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-4 h-4" />
+                      <Target className="w-4 h-4 text-orange-500" />
                       <span className="font-medium">Outlier Detection</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Identify unusual data points</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Identify unusual data points</p>
                   </div>
                   
-                  <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setInputMessage('Recommend charts')}>
+                  <div 
+                    className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer" 
+                    onClick={() => setInputMessage('Recommend charts')}
+                  >
                     <div className="flex items-center gap-2 mb-2">
-                      <Lightbulb className="w-4 h-4" />
+                      <Lightbulb className="w-4 h-4 text-purple-500" />
                       <span className="font-medium">Chart Recommendations</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Get visualization suggestions</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Get visualization suggestions</p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="space-y-6 pb-4">
-                {messages.map((msg) => (
-                  <div key={msg.id} className="space-y-4">
+              <div className="space-y-4 pb-4">
+                {messages.map((msg, index) => (
+                  <div key={msg.id} className="space-y-3">
                     {msg.type === 'user' && (
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                          <User className="w-4 h-4 text-primary-foreground" />
+                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                          <User className="w-4 h-4 text-white" />
                         </div>
-                        <div className="bg-primary/10 p-4 rounded-lg flex-1 max-w-[80%]">
-                          <p className="text-sm">{msg.message}</p>
+                        <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg flex-1 max-w-[80%]">
+                          <p className="text-gray-900 dark:text-white">{msg.message}</p>
                         </div>
                       </div>
                     )}
                     
                     {msg.type === 'ai' && (
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          <Bot className="w-4 h-4" />
+                        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+                          <Bot className="w-4 h-4 text-white" />
                         </div>
-                        <div className="bg-muted p-4 rounded-lg flex-1 max-w-[80%] space-y-3">
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg flex-1 max-w-[80%] space-y-3">
                           <div className="prose prose-sm max-w-none">
                             <div dangerouslySetInnerHTML={{ __html: msg.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') }} />
                           </div>
                           
                           {msg.insights && msg.insights.length > 0 && (
                             <div className="pt-2 border-t">
-                              <p className="text-xs font-medium text-muted-foreground mb-2">Key Insights:</p>
+                              <p className="text-xs font-medium text-gray-500 mb-2">Key Insights:</p>
                               <div className="flex flex-wrap gap-1">
                                 {msg.insights.map((insight, i) => (
                                   <Badge key={i} variant="outline" className="text-xs">
@@ -489,7 +514,7 @@ I've analyzed your ${fileName} dataset with ${analysis.totalRows} records and ${
                           
                           {msg.suggestions && msg.suggestions.length > 0 && (
                             <div className="pt-2 border-t">
-                              <p className="text-xs font-medium text-muted-foreground mb-2">Try asking:</p>
+                              <p className="text-xs font-medium text-gray-500 mb-2">Try asking:</p>
                               <div className="flex flex-wrap gap-1">
                                 {msg.suggestions.map((suggestion, i) => (
                                   <Button
@@ -513,10 +538,10 @@ I've analyzed your ${fileName} dataset with ${analysis.totalRows} records and ${
                 
                 {isLoading && (
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-4 h-4 text-white" />
                     </div>
-                    <div className="bg-muted p-4 rounded-lg flex-1 max-w-[80%]">
+                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg flex-1 max-w-[80%]">
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         <span className="text-sm">Analyzing your data...</span>
@@ -533,7 +558,7 @@ I've analyzed your ${fileName} dataset with ${analysis.totalRows} records and ${
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ask something about your data... (e.g., 'Give me a summary', 'What trends do you see?')"
+                placeholder="Ask something about your data..."
                 onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
                 disabled={isLoading}
                 className="flex-1"

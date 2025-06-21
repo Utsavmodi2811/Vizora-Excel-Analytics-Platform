@@ -31,9 +31,12 @@ const Upload = () => {
   const validateFile = (file: File): boolean => {
     const validTypes = [
       'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv',
+      'application/csv',
+      'text/plain',
     ];
-    const validExtensions = ['.xls', '.xlsx'];
+    const validExtensions = ['.xls', '.xlsx', '.csv'];
     
     const hasValidType = validTypes.includes(file.type);
     const hasValidExtension = validExtensions.some(ext => 
@@ -128,37 +131,38 @@ const Upload = () => {
   ];
 
   return (
-    <div className="space-y-8 p-6">
-      {/* Hero Section */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <CloudUpload className="w-8 h-8 text-white" />
+    <div className="space-y-6 p-6">
+      {/* Enhanced Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <CloudUpload className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Upload Your Data 📁</h1>
+              <p className="text-blue-100">Transform Excel files into stunning visualizations</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Upload Your Data
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              Transform Excel files into stunning visualizations
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <FileText className="w-3 h-3 inline mr-1" />
+              Excel Support
+            </div>
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <Zap className="w-3 h-3 inline mr-1" />
+              Instant Processing
+            </div>
+            <div className="bg-white/20 px-3 py-1 rounded-full text-sm">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              AI Powered
+            </div>
           </div>
         </div>
-        
-        <div className="flex items-center justify-center gap-4">
-          <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            <FileText className="w-3 h-3 mr-1" />
-            Excel Support
-          </Badge>
-          <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-            <Zap className="w-3 h-3 mr-1" />
-            Instant Processing
-          </Badge>
-          <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-            <Sparkles className="w-3 h-3 mr-1" />
-            AI Powered
-          </Badge>
-        </div>
+        {/* Simple decorative elements */}
+        <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full animate-pulse"></div>
+        <div className="absolute bottom-4 right-8 text-3xl opacity-20">📊</div>
       </div>
 
       {/* Upload Area */}
@@ -238,7 +242,7 @@ const Upload = () => {
 
               <input
                 type="file"
-                accept=".xls,.xlsx"
+                accept=".xls,.xlsx,.csv"
                 onChange={handleFileInput}
                 className="hidden"
                 id="file-upload"
@@ -311,7 +315,7 @@ const Upload = () => {
             </div>
             <div>
               <CardTitle className="text-xl">Supported File Types</CardTitle>
-              <p className="text-sm text-gray-500">All major Excel formats supported</p>
+              <p className="text-sm text-gray-500">All major Excel & CSV formats supported</p>
             </div>
           </div>
         </CardHeader>
@@ -335,6 +339,16 @@ const Upload = () => {
                 <p className="font-semibold text-gray-900 dark:text-white">.xls files</p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Excel 97-2003</p>
                 <Badge variant="outline" className="mt-1">Legacy</Badge>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg flex items-center justify-center">
+                <FileSpreadsheet className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">.csv files</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Comma Separated Values</p>
+                <Badge variant="outline" className="mt-1">CSV</Badge>
               </div>
             </div>
           </div>

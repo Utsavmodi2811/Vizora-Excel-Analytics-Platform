@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, BarChart, Users, Calendar, Target, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface DataSummaryPanelProps {
   data: any[];
@@ -155,14 +156,16 @@ const DataSummaryPanel: React.FC<DataSummaryPanelProps> = ({ data, fileName }) =
   }
 
   return (
-    <Card>
+    <Card className="shadow-xl border-0 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <BarChart className="w-5 h-5" />
-          AI Data Summary
+          <BarChart className="w-5 h-5 text-indigo-600" />
+          <span className="font-bold text-indigo-700 dark:text-indigo-200">AI Insights</span>
+          <Badge className="ml-2 bg-yellow-400 text-black px-2 py-0.5 rounded-full text-xs font-semibold">AI</Badge>
         </CardTitle>
+        <div className="text-xs text-muted-foreground mt-1 ml-7">Smart analysis, data quality, and chart suggestions</div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {/* Data Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="text-center">
@@ -186,67 +189,93 @@ const DataSummaryPanel: React.FC<DataSummaryPanelProps> = ({ data, fileName }) =
           </div>
         </div>
 
-        {/* AI Insights */}
+        {/* Data Quality */}
+        <div className="flex flex-wrap gap-2 items-center text-xs">
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+            <AlertTriangle className="w-3 h-3 mr-1" /> Missing: {summary.missingData}
+          </Badge>
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
+            <Users className="w-3 h-3 mr-1" /> Duplicates: {new Set(data.map(row => JSON.stringify(row))).size !== data.length ? (data.length - new Set(data.map(row => JSON.stringify(row))).size) : 0}
+          </Badge>
+        </div>
+
+        {/* Numeric Columns Stats */}
         <div className="space-y-2">
           <h4 className="font-semibold flex items-center gap-2 text-sm">
             <Zap className="w-4 h-4" />
-            AI Insights
+            Descriptive Stats
           </h4>
-          {summary.insights.slice(0, 2).map((insight, index) => (
-            <div key={index} className="p-2 bg-muted/50 rounded-lg space-y-1">
-              <div className="flex items-center justify-between">
-                <Badge variant="outline" className="text-xs">{insight.column}</Badge>
-                <div className="flex items-center gap-1">
-                  {insight.trend === 'up' && <TrendingUp className="w-3 h-3 text-green-500" />}
-                  {insight.trend === 'down' && <TrendingDown className="w-3 h-3 text-red-500" />}
-                  {insight.trend === 'stable' && <div className="w-3 h-3 text-blue-500">—</div>}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                <div>
-                  <span className="text-muted-foreground">Avg:</span> {insight.avg.toFixed(1)}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Pattern:</span> {insight.pattern}
-                </div>
-              </div>
-            </div>
-          ))}
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-xs border rounded-lg">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800">
+                  <th className="px-2 py-1">Column</th>
+                  <th className="px-2 py-1">Mean</th>
+                  <th className="px-2 py-1">Median</th>
+                  <th className="px-2 py-1">Min</th>
+                  <th className="px-2 py-1">Max</th>
+                  <th className="px-2 py-1">Std</th>
+                  <th className="px-2 py-1">Trend</th>
+                  <th className="px-2 py-1">Pattern</th>
+                  <th className="px-2 py-1">Outliers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.insights.map((insight, idx) => (
+                  <tr key={insight.column} className="border-t">
+                    <td className="px-2 py-1 font-semibold">{insight.column}</td>
+                    <td className="px-2 py-1">{insight.avg.toFixed(2)}</td>
+                    <td className="px-2 py-1">{insight.median}</td>
+                    <td className="px-2 py-1">{insight.min}</td>
+                    <td className="px-2 py-1">{insight.max}</td>
+                    <td className="px-2 py-1">{insight.stdDev.toFixed(2)}</td>
+                    <td className="px-2 py-1">
+                      {insight.trend === 'up' && <TrendingUp className="w-3 h-3 text-green-500 inline" />}
+                      {insight.trend === 'down' && <TrendingDown className="w-3 h-3 text-red-500 inline" />}
+                      {insight.trend === 'stable' && <BarChart className="w-3 h-3 text-gray-500 inline" />}
+                      <span className="ml-1">{insight.trend.charAt(0).toUpperCase() + insight.trend.slice(1)}</span>
+                    </td>
+                    <td className="px-2 py-1">{insight.pattern}</td>
+                    <td className="px-2 py-1">{insight.outliers}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* AI Recommendations */}
-        {summary.recommendations.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="font-semibold text-sm">AI Recommendations</h4>
-            {summary.recommendations.slice(0, 2).map((rec, index) => (
-              <div key={index} className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
-                <rec.icon className={`w-3 h-3 mt-0.5 ${
-                  rec.type === 'warning' ? 'text-yellow-500' :
-                  rec.type === 'success' ? 'text-green-500' : 'text-blue-500'
-                }`} />
-                <span className="text-xs">{rec.message}</span>
-              </div>
+        {/* Chart Recommendations */}
+        <div className="space-y-2">
+          <h4 className="font-semibold flex items-center gap-2 text-sm">
+            <Target className="w-4 h-4" />
+            Chart Suggestions
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {summary.chartRecommendations.map((rec, i) => (
+              <Badge key={i} variant="outline" className="bg-green-50 text-green-700 border-green-300">
+                {rec}
+              </Badge>
             ))}
           </div>
-        )}
+        </div>
 
-        {/* Chart Recommendations */}
-        {summary.chartRecommendations.length > 0 && (
-          <div className="space-y-1">
-            <h4 className="font-semibold text-sm">Recommended Charts</h4>
-            <div className="flex flex-wrap gap-1">
-              {summary.chartRecommendations.slice(0, 2).map((chart, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {chart}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="text-xs text-muted-foreground flex items-center gap-1 pt-2 border-t">
-          <Calendar className="w-3 h-3" />
-          Last updated: {new Date().toLocaleString()}
+        {/* Actionable Recommendations */}
+        <div className="space-y-2">
+          <h4 className="font-semibold flex items-center gap-2 text-sm">
+            <CheckCircle className="w-4 h-4 text-green-500" />
+            Actionable Insights
+          </h4>
+          <ul className="list-disc pl-5 text-xs space-y-1">
+            {summary.recommendations.length === 0 && (
+              <li className="text-muted-foreground">No major issues detected. Data looks good!</li>
+            )}
+            {summary.recommendations.map((rec, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <rec.icon className="w-3 h-3" />
+                {rec.message}
+              </li>
+            ))}
+          </ul>
         </div>
       </CardContent>
     </Card>
