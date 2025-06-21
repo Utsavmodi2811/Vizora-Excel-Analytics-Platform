@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Area, AreaChart, Legend } from 'recharts';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Download, FileImage, BarChart3, Box } from 'lucide-react';
@@ -31,7 +31,12 @@ const Analytics = () => {
     fontFamily: 'Arial',
     gridLines: true,
     legend: true,
-    animation: true
+    animation: true,
+    chartOpacity: 1,
+    axisLabelRotation: 0,
+    backgroundColor: '#ffffff',
+    borderColor: '#e5e7eb',
+    borderWidth: 1
   });
   const [showGrid, setShowGrid] = useState(true);
   const [showLegend, setShowLegend] = useState(true);
@@ -138,18 +143,40 @@ const Analytics = () => {
     }
 
     const chartProps = {
-      style: { fontFamily: chartStyle.fontFamily, fontSize: chartStyle.fontSize }
+      style: { 
+        fontFamily: chartStyle.fontFamily, 
+        fontSize: parseInt(chartStyle.fontSize),
+        opacity: chartStyle.chartOpacity || 1
+      }
     };
+
+    const fontSize = parseInt(chartStyle.fontSize);
 
     switch (chartType) {
       case 'bar':
         return (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData} {...chartProps} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-              {chartStyle.gridLines && <CartesianGrid strokeDasharray="3 3" />}
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
+              {showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: fontSize }}
+                style={{ fontFamily: chartStyle.fontFamily }}
+                angle={chartStyle.axisLabelRotation || 0}
+                textAnchor={chartStyle.axisLabelRotation > 0 ? 'end' : 'middle'}
+                height={chartStyle.axisLabelRotation !== 0 ? 80 : 60}
+              />
+              <YAxis 
+                tick={{ fontSize: fontSize }}
+                style={{ fontFamily: chartStyle.fontFamily }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  fontFamily: chartStyle.fontFamily,
+                  fontSize: fontSize 
+                }}
+              />
+              {showLegend && <Legend />}
               <Bar dataKey="value" fill={chartStyle.color} />
             </BarChart>
           </ResponsiveContainer>
@@ -159,11 +186,33 @@ const Analytics = () => {
         return (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData} {...chartProps} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-              {chartStyle.gridLines && <CartesianGrid strokeDasharray="3 3" />}
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke={chartStyle.color} strokeWidth={2} />
+              {showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: fontSize }}
+                style={{ fontFamily: chartStyle.fontFamily }}
+                angle={chartStyle.axisLabelRotation || 0}
+                textAnchor={chartStyle.axisLabelRotation > 0 ? 'end' : 'middle'}
+                height={chartStyle.axisLabelRotation !== 0 ? 80 : 60}
+              />
+              <YAxis 
+                tick={{ fontSize: fontSize }}
+                style={{ fontFamily: chartStyle.fontFamily }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  fontFamily: chartStyle.fontFamily,
+                  fontSize: fontSize 
+                }}
+              />
+              {showLegend && <Legend />}
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                stroke={chartStyle.color} 
+                strokeWidth={2}
+                animationDuration={enableAnimation ? 1000 : 0}
+              />
             </LineChart>
           </ResponsiveContainer>
         );
@@ -172,11 +221,33 @@ const Analytics = () => {
         return (
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData} {...chartProps} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-              {chartStyle.gridLines && <CartesianGrid strokeDasharray="3 3" />}
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Area type="monotone" dataKey="value" stroke={chartStyle.color} fill={chartStyle.color} />
+              {showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: fontSize }}
+                style={{ fontFamily: chartStyle.fontFamily }}
+                angle={chartStyle.axisLabelRotation || 0}
+                textAnchor={chartStyle.axisLabelRotation > 0 ? 'end' : 'middle'}
+                height={chartStyle.axisLabelRotation !== 0 ? 80 : 60}
+              />
+              <YAxis 
+                tick={{ fontSize: fontSize }}
+                style={{ fontFamily: chartStyle.fontFamily }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  fontFamily: chartStyle.fontFamily,
+                  fontSize: fontSize 
+                }}
+              />
+              {showLegend && <Legend />}
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke={chartStyle.color} 
+                fill={chartStyle.color}
+                animationDuration={enableAnimation ? 1000 : 0}
+              />
             </AreaChart>
           </ResponsiveContainer>
         );
@@ -194,12 +265,19 @@ const Analytics = () => {
                 outerRadius={80}
                 fill={chartStyle.color}
                 dataKey="value"
+                animationDuration={enableAnimation ? 1000 : 0}
               >
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{ 
+                  fontFamily: chartStyle.fontFamily,
+                  fontSize: fontSize 
+                }}
+              />
+              {showLegend && <Legend />}
             </PieChart>
           </ResponsiveContainer>
         );
@@ -282,7 +360,7 @@ const Analytics = () => {
                     className="w-full h-10 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium"
                     disabled={!selectedXAxis || !selectedYAxis}
                   >
-                    Create Chart
+                    Save to History
                   </Button>
                 </div>
               </div>
@@ -322,7 +400,15 @@ const Analytics = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div ref={chartRef} className="w-full bg-white dark:bg-gray-800 p-2 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div 
+                  ref={chartRef} 
+                  className="w-full p-2 sm:p-4 rounded-lg"
+                  style={{
+                    backgroundColor: chartStyle.backgroundColor || '#ffffff',
+                    border: `${chartStyle.borderWidth || 1}px solid ${chartStyle.borderColor || '#e5e7eb'}`,
+                    opacity: chartStyle.chartOpacity || 1
+                  }}
+                >
                   {renderChart()}
                 </div>
               </CardContent>
@@ -331,7 +417,6 @@ const Analytics = () => {
         </div>
 
         <div className="space-y-4 sm:space-y-6">
-          <DataSummaryPanel data={currentData} fileName={fileName} />
           <ChartCustomization 
             onStyleChange={setChartStyle}
             onExport={handleExport}
@@ -342,6 +427,9 @@ const Analytics = () => {
             onShowLegendChange={setShowLegend}
             onEnableAnimationChange={setEnableAnimation}
           />
+          <div className="max-h-[600px] overflow-y-auto">
+            <DataSummaryPanel data={currentData} fileName={fileName} />
+          </div>
         </div>
       </div>
     </div>
