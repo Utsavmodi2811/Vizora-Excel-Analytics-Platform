@@ -178,6 +178,30 @@
   }
 }
 
+/* Enhanced floating animation for particles */
+@keyframes float-particle {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-15px) translateX(5px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-25px) translateX(-3px);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translateY(-15px) translateX(3px);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.3;
+  }
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
