@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Area, AreaChart, Legend } from 'recharts';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Download, FileImage, BarChart3, Box } from 'lucide-react';
+import { Download, FileImage, BarChart3, Box, ChevronDown, ChevronUp } from 'lucide-react';
 import Chart3D from '@/components/Chart3D';
 import DataSummaryPanel from '@/components/DataSummaryPanel';
 import ChartCustomization from '@/components/ChartCustomization';
@@ -41,6 +41,8 @@ const Analytics = () => {
   const [showGrid, setShowGrid] = useState(true);
   const [showLegend, setShowLegend] = useState(true);
   const [enableAnimation, setEnableAnimation] = useState(true);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [isAISummaryOpen, setIsAISummaryOpen] = useState(false);
 
   if (!currentData || !fileName) {
     return (
@@ -417,19 +419,66 @@ const Analytics = () => {
         </div>
 
         <div className="space-y-4 sm:space-y-6">
-          <ChartCustomization 
-            onStyleChange={setChartStyle}
-            onExport={handleExport}
-            showGrid={showGrid}
-            showLegend={showLegend}
-            enableAnimation={enableAnimation}
-            onShowGridChange={setShowGrid}
-            onShowLegendChange={setShowLegend}
-            onEnableAnimationChange={setEnableAnimation}
-          />
-          <div className="max-h-[600px] overflow-y-auto">
-            <DataSummaryPanel data={currentData} fileName={fileName} />
-          </div>
+          {/* Chart Customization - Collapsible */}
+          <Card className="shadow-lg border-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+            <CardHeader 
+              className="pb-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              onClick={() => setIsCustomizeOpen(!isCustomizeOpen)}
+            >
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-blue-600" />
+                  Customize Chart Style
+                </CardTitle>
+                {isCustomizeOpen ? (
+                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                )}
+              </div>
+            </CardHeader>
+            {isCustomizeOpen && (
+              <CardContent className="pt-0">
+                <ChartCustomization 
+                  onStyleChange={setChartStyle}
+                  onExport={handleExport}
+                  showGrid={showGrid}
+                  showLegend={showLegend}
+                  enableAnimation={enableAnimation}
+                  onShowGridChange={setShowGrid}
+                  onShowLegendChange={setShowLegend}
+                  onEnableAnimationChange={setEnableAnimation}
+                />
+              </CardContent>
+            )}
+          </Card>
+
+          {/* AI Data Summary - Collapsible */}
+          <Card className="shadow-lg border-0 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
+            <CardHeader 
+              className="pb-3 cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+              onClick={() => setIsAISummaryOpen(!isAISummaryOpen)}
+            >
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-indigo-600" />
+                  AI Data Summary
+                </CardTitle>
+                {isAISummaryOpen ? (
+                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                )}
+              </div>
+            </CardHeader>
+            {isAISummaryOpen && (
+              <CardContent className="pt-0">
+                <div className="max-h-[300px] overflow-y-auto">
+                  <DataSummaryPanel data={currentData} fileName={fileName} />
+                </div>
+              </CardContent>
+            )}
+          </Card>
         </div>
       </div>
     </div>

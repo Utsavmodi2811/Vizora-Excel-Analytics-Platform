@@ -1,11 +1,24 @@
-
 import { useState } from 'react';
 import { useData } from '@/context/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Upload as UploadIcon, FileSpreadsheet, CheckCircle } from 'lucide-react';
+import { 
+  Upload as UploadIcon, 
+  FileSpreadsheet, 
+  CheckCircle, 
+  CloudUpload,
+  FileText,
+  BarChart3,
+  Sparkles,
+  ArrowRight,
+  Zap,
+  Database,
+  TrendingUp,
+  Shield
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 
 const Upload = () => {
   const [isDragging, setIsDragging] = useState(false);
@@ -87,29 +100,87 @@ const Upload = () => {
     }
   };
 
+  const features = [
+    {
+      icon: BarChart3,
+      title: "Smart Analytics",
+      description: "AI-powered insights from your data",
+      color: "from-blue-500 to-blue-600"
+    },
+    {
+      icon: Database,
+      title: "Secure Processing",
+      description: "Your data is processed securely",
+      color: "from-green-500 to-green-600"
+    },
+    {
+      icon: TrendingUp,
+      title: "Real-time Charts",
+      description: "Create beautiful visualizations instantly",
+      color: "from-purple-500 to-purple-600"
+    },
+    {
+      icon: Shield,
+      title: "Privacy First",
+      description: "Your data never leaves your control",
+      color: "from-orange-500 to-orange-600"
+    }
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Upload Excel File</h1>
-        <p className="text-gray-600">
-          Upload your Excel files (.xls, .xlsx) to start creating beautiful visualizations
-        </p>
+    <div className="space-y-8 p-6">
+      {/* Hero Section */}
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <CloudUpload className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Upload Your Data
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              Transform Excel files into stunning visualizations
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center gap-4">
+          <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            <FileText className="w-3 h-3 mr-1" />
+            Excel Support
+          </Badge>
+          <Badge variant="secondary" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+            <Zap className="w-3 h-3 mr-1" />
+            Instant Processing
+          </Badge>
+          <Badge variant="secondary" className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+            <Sparkles className="w-3 h-3 mr-1" />
+            AI Powered
+          </Badge>
+        </div>
       </div>
 
-      <Card className="overflow-hidden">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UploadIcon className="w-5 h-5" />
-            File Upload
-          </CardTitle>
+      {/* Upload Area */}
+      <Card className="border-0 shadow-lg overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <UploadIcon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">File Upload</CardTitle>
+              <p className="text-sm text-gray-500">Drag & drop or click to upload</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div
             className={`
-              border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200
+              border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ease-in-out
               ${isDragging 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-300 hover:border-gray-400'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 scale-105' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:scale-[1.02]'
               }
               ${isUploading ? 'opacity-50 pointer-events-none' : ''}
             `}
@@ -117,31 +188,50 @@ const Upload = () => {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <div className="space-y-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto">
-                <UploadIcon className="w-8 h-8 text-white" />
+            <div className="space-y-6">
+              <div className={`
+                w-20 h-20 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg transition-all duration-300
+                ${isDragging ? 'scale-110 rotate-12' : 'hover:scale-105'}
+              `}>
+                <UploadIcon className="w-10 h-10 text-white" />
               </div>
               
               {!uploadedFile ? (
                 <>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {isUploading ? 'Processing...' : 'Drop your Excel file here'}
-                  </h3>
-                  <p className="text-gray-600">
-                    or click to browse your files
-                  </p>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {isUploading ? 'Processing your file...' : 'Drop your Excel file here'}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      or click to browse your files
+                    </p>
+                  </div>
+                  
+                  {isUploading && (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-blue-600 dark:text-blue-400">Processing...</span>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
-                  <div className="flex items-center justify-center gap-2">
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                    <h3 className="text-lg font-semibold text-green-700">
-                      File Uploaded Successfully!
-                    </h3>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 text-gray-600">
-                    <FileSpreadsheet className="w-5 h-5" />
-                    <span>{uploadedFile.name}</span>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                        <CheckCircle className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="text-xl font-semibold text-green-700 dark:text-green-400">
+                          File Uploaded Successfully!
+                        </h3>
+                        <p className="text-green-600 dark:text-green-300">Ready for analysis</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">{uploadedFile.name}</span>
+                    </div>
                   </div>
                 </>
               )}
@@ -158,12 +248,22 @@ const Upload = () => {
               {!uploadedFile && (
                 <label htmlFor="file-upload">
                   <Button 
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                    className="h-12 px-8 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                     disabled={isUploading}
                     asChild
                   >
-                    <span className="cursor-pointer">
-                      {isUploading ? 'Processing...' : 'Choose File'}
+                    <span className="cursor-pointer flex items-center gap-2">
+                      {isUploading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <UploadIcon className="w-5 h-5" />
+                          Choose File
+                        </>
+                      )}
                     </span>
                   </Button>
                 </label>
@@ -172,36 +272,69 @@ const Upload = () => {
           </div>
 
           {uploadedFile && (
-            <div className="mt-6 flex justify-center">
+            <div className="mt-8 flex justify-center">
               <Button 
                 onClick={() => navigate('/analytics')}
-                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                className="h-12 px-8 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
-                Start Creating Charts
+                <span className="flex items-center gap-2">
+                  Start Creating Charts
+                  <ArrowRight className="w-5 h-5" />
+                </span>
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      <Card>
+      {/* Features Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {features.map((feature, index) => (
+          <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-gray-800">
+            <CardContent className="p-6 text-center">
+              <div className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                <feature.icon className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{feature.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Supported File Types */}
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
         <CardHeader>
-          <CardTitle>Supported File Types</CardTitle>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-xl">Supported File Types</CardTitle>
+              <p className="text-sm text-gray-500">All major Excel formats supported</p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <FileSpreadsheet className="w-8 h-8 text-green-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                <FileSpreadsheet className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="font-medium">.xlsx files</p>
-                <p className="text-sm text-gray-600">Excel 2007 and later</p>
+                <p className="font-semibold text-gray-900 dark:text-white">.xlsx files</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Excel 2007 and later</p>
+                <Badge variant="outline" className="mt-1">Recommended</Badge>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <FileSpreadsheet className="w-8 h-8 text-blue-600" />
+            <div className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <FileSpreadsheet className="w-6 h-6 text-white" />
+              </div>
               <div>
-                <p className="font-medium">.xls files</p>
-                <p className="text-sm text-gray-600">Excel 97-2003</p>
+                <p className="font-semibold text-gray-900 dark:text-white">.xls files</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Excel 97-2003</p>
+                <Badge variant="outline" className="mt-1">Legacy</Badge>
               </div>
             </div>
           </div>
@@ -212,3 +345,4 @@ const Upload = () => {
 };
 
 export default Upload;
+
