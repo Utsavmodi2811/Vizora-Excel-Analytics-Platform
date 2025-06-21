@@ -8,6 +8,7 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   isBlocked: boolean;
   lastActive: Date;
+  emailNotifications?: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -44,6 +45,10 @@ const userSchema = new Schema<IUser>(
     lastActive: {
       type: Date,
       default: Date.now
+    },
+    emailNotifications: {
+      type: Boolean,
+      default: true
     }
   },
   {

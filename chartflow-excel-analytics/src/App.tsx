@@ -19,6 +19,8 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import AnalysisHistory from './pages/AnalysisHistory';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import React from 'react';
@@ -129,6 +131,8 @@ const App = () => (
                   {/* Public routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
 
                   {/* Protected routes */}
                   <Route

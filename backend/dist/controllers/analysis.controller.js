@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteAnalysis = exports.updateAnalysis = exports.createAnalysis = exports.getAnalysisHistory = void 0;
 const analysis_model_1 = require("../models/analysis.model");
+const user_model_1 = require("../models/user.model");
+const email_service_1 = require("../services/email.service");
 // Get user's analysis history
 const getAnalysisHistory = async (req, res) => {
     try {
@@ -45,6 +47,19 @@ const updateAnalysis = async (req, res) => {
         const analysis = await analysis_model_1.Analysis.findOneAndUpdate({ _id: id, userId: req.user._id }, { status, result, error }, { new: true });
         if (!analysis) {
             return res.status(404).json({ message: 'Analysis not found' });
+        }
+        // Send completion email if analysis is completed and user has email notifications enabled
+        if (status === 'completed' && req.user.emailNotifications !== false) {
+            try {
+                const user = await user_model_1.User.findById(req.user._id);
+                if (user && user.email) {
+                    await (0, email_service_1.sendAnalysisCompleteEmail)(user.email, user.name, analysis.fileName);
+                }
+            }
+            catch (emailError) {
+                console.error('Failed to send analysis completion email:', emailError);
+                // Continue even if email fails
+            }
         }
         res.json({ analysis });
     }

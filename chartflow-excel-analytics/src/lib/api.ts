@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 // Create axios instance
 const api = axios.create({
@@ -33,6 +33,11 @@ export const authAPI = {
 
   getProfile: async () => {
     const response = await api.get('/auth/profile');
+    return response.data;
+  },
+
+  updateProfile: async (profileData: { name?: string; email?: string; emailNotifications?: boolean }) => {
+    const response = await api.patch('/auth/profile', profileData);
     return response.data;
   },
 

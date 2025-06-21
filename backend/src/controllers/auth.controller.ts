@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { User } from '../models/user.model';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/email.service';
 
 // Register a new user
 export const register = async (req: Request, res: Response) => {
@@ -28,6 +29,14 @@ export const register = async (req: Request, res: Response) => {
     });
 
     await user.save();
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(email, name);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Continue with registration even if email fails
+    }
 
     // Generate token with user role
     const token = jwt.sign(
@@ -169,5 +178,103 @@ export const heartbeat = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Heartbeat error:', error);
     res.status(500).json({ message: 'Error updating heartbeat' });
+  }
+};
+
+// Update user profile (name, emailNotifications)
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const { name, emailNotifications } = req.body;
+    const updateFields: any = {};
+    if (typeof name === 'string' && name.trim()) updateFields.name = name.trim();
+    if (typeof emailNotifications === 'boolean') updateFields.emailNotifications = emailNotifications;
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).json({ message: 'No valid fields to update' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, select: '-password' }
+    );
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ user });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Error updating profile' });
+  }
+};
+
+// Request password reset
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate reset token (valid for 1 hour)
+    const resetToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '1h' }
+    );
+
+    // Create reset link
+    const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+
+    // Send password reset email
+    try {
+      await sendPasswordResetEmail(email, resetLink);
+      res.json({ message: 'Password reset email sent successfully' });
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      res.status(500).json({ message: 'Failed to send password reset email' });
+    }
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.status(500).json({ message: 'Error processing password reset request' });
+  }
+};
+
+// Reset password with token
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Token and new password are required' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.status(500).json({ message: 'Error resetting password' });
   }
 }; 

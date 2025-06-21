@@ -237,6 +237,11 @@ const Login = () => {
                     </button>
                   </div>
                 </div>
+                <div className={`text-right transition-all duration-700 delay-700 ${animateElements ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+                  <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200 hover:underline">
+                    Forgot your password?
+                  </Link>
+                </div>
                 <div className={`transition-all duration-700 delay-800 ${animateElements ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
                   <Button 
                     type="submit" 

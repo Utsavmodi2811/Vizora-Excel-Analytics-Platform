@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { Analysis } from '../models/analysis.model';
+import { User } from '../models/user.model';
+import { sendAnalysisCompleteEmail } from '../services/email.service';
 
 // Get user's analysis history
 export const getAnalysisHistory = async (req: Request, res: Response) => {
@@ -52,6 +54,19 @@ export const updateAnalysis = async (req: Request, res: Response) => {
 
     if (!analysis) {
       return res.status(404).json({ message: 'Analysis not found' });
+    }
+
+    // Send completion email if analysis is completed and user has email notifications enabled
+    if (status === 'completed' && req.user.emailNotifications !== false) {
+      try {
+        const user = await User.findById(req.user._id);
+        if (user && user.email) {
+          await sendAnalysisCompleteEmail(user.email, user.name, analysis.fileName);
+        }
+      } catch (emailError) {
+        console.error('Failed to send analysis completion email:', emailError);
+        // Continue even if email fails
+      }
     }
 
     res.json({ analysis });

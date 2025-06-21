@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (profileData: { name?: string; email?: string; emailNotifications?: boolean }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -78,6 +79,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const updateProfile = async (profileData: { name?: string; email?: string; emailNotifications?: boolean }) => {
+    try {
+      setError(null);
+      const { user: updatedUser } = await authAPI.updateProfile(profileData);
+      setUser(updatedUser);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Profile update failed');
+      throw err;
+    }
+  };
+
   // Heartbeat mechanism to keep user active
   useEffect(() => {
     if (!token || !user) return;
@@ -94,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [token, user]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, error, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, error, login, register, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

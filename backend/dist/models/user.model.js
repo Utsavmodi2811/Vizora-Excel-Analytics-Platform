@@ -69,6 +69,10 @@ const userSchema = new mongoose_1.Schema({
     lastActive: {
         type: Date,
         default: Date.now
+    },
+    emailNotifications: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true
