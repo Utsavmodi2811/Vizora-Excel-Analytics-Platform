@@ -64,12 +64,57 @@ export const downloadChart = async (req: Request, res: Response) => {
 export const getAnalysisHistory = async (req: Request, res: Response) => {
   try {
     const analyses = await Analysis.find({ userId: req.user._id })
-      .select('fileName fileType fileSize analysisType status createdAt')
+      .select('fileName fileType fileSize analysisType status createdAt result')
       .sort({ createdAt: -1 });
 
     res.json({ analyses });
   } catch (error) {
     console.error('Error fetching analysis history:', error);
     res.status(500).json({ message: 'Error fetching analysis history' });
+  }
+};
+
+export const createChart = async (req: Request, res: Response) => {
+  try {
+    const { fileName, chartType, xAxis, yAxis, data } = req.body;
+
+    if (!fileName || !chartType || !xAxis || !yAxis || !data) {
+      return res.status(400).json({ message: 'Missing required parameters' });
+    }
+
+    // Create new analysis record
+    const analysis = new Analysis({
+      userId: req.user._id,
+      fileName: fileName,
+      fileType: 'xlsx', // Default file type
+      fileSize: 0, // We don't have the actual file size
+      analysisType: chartType,
+      status: 'completed',
+      result: {
+        chartType,
+        xAxis,
+        yAxis,
+        data
+      }
+    });
+
+    await analysis.save();
+
+    res.status(201).json({
+      message: 'Chart created successfully',
+      analysis: {
+        id: analysis._id,
+        fileName: analysis.fileName,
+        fileType: analysis.fileType,
+        fileSize: analysis.fileSize,
+        analysisType: analysis.analysisType,
+        status: analysis.status,
+        result: analysis.result,
+        createdAt: analysis.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error creating chart:', error);
+    res.status(500).json({ message: 'Error creating chart' });
   }
 }; 

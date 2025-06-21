@@ -54,10 +54,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ThemeProvider>
-        <DataProvider>
-          <Toaster />
-          <Sonner />
-          <AuthProvider>
+        <AuthProvider>
+          <DataProvider>
+            <Toaster />
+            <Sonner />
             <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <Routes>
                 {/* Public routes */}
@@ -105,8 +105,8 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Router>
-          </AuthProvider>
-        </DataProvider>
+          </DataProvider>
+        </AuthProvider>
       </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>

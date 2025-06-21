@@ -29,9 +29,9 @@ export const register = async (req: Request, res: Response) => {
 
     await user.save();
 
-    // Generate token
+    // Generate token with user role
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
@@ -78,9 +78,9 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate token
+    // Generate token with user role
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
@@ -118,7 +118,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(user);
+    res.json({ user });
   } catch (error) {
     console.error('Get current user error:', error);
     res.status(500).json({ message: 'Error getting user data' });

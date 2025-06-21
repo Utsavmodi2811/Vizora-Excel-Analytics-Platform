@@ -1,29 +1,44 @@
-
 import { useData } from '@/context/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Download, Eye } from 'lucide-react';
+import { Trash2, Download, Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const History = () => {
-  const { excelFiles, charts, deleteFile, deleteChart, setCurrentData } = useData();
+  const { excelFiles, charts, deleteFile, deleteChart, setCurrentData, loading } = useData();
   const { toast } = useToast();
 
-  const handleDeleteFile = (id: string, fileName: string) => {
-    deleteFile(id);
-    toast({
-      title: 'File Deleted',
-      description: `${fileName} has been removed`,
-    });
+  const handleDeleteFile = async (id: string, fileName: string) => {
+    try {
+      await deleteFile(id);
+      toast({
+        title: 'File Deleted',
+        description: `${fileName} has been removed`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete file',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDeleteChart = (id: string) => {
-    deleteChart(id);
-    toast({
-      title: 'Chart Deleted',
-      description: 'Chart has been removed from history',
-    });
+  const handleDeleteChart = async (id: string) => {
+    try {
+      await deleteChart(id);
+      toast({
+        title: 'Chart Deleted',
+        description: 'Chart has been removed from history',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete chart',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleViewFile = (file: any) => {
@@ -33,6 +48,17 @@ const History = () => {
       description: `${file.fileName} is now active for analysis`,
     });
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading your data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -57,21 +83,13 @@ const History = () => {
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{file.fileName}</h3>
                         <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                          <span>{file.data.length} rows</span>
-                          <span>{file.columns.length} columns</span>
+                          <span>{file.fileSize} bytes</span>
                           <span>{file.uploadDate.toLocaleDateString()}</span>
                         </div>
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {file.columns.slice(0, 3).map((column) => (
-                            <Badge key={column} variant="secondary" className="text-xs">
-                              {column}
-                            </Badge>
-                          ))}
-                          {file.columns.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{file.columns.length - 3} more
-                            </Badge>
-                          )}
+                          <Badge variant="secondary" className="text-xs">
+                            {file.fileType}
+                          </Badge>
                         </div>
                       </div>
                       <div className="flex gap-2 ml-4">
@@ -115,10 +133,13 @@ const History = () => {
                           <Badge variant="outline" className="capitalize">
                             {chart.chartType}
                           </Badge>
-                          <h3 className="font-semibold text-gray-900">
-                            {chart.xAxis} vs {chart.yAxis}
-                          </h3>
+                          <Badge variant={chart.status === 'completed' ? 'default' : 'secondary'}>
+                            {chart.status}
+                          </Badge>
                         </div>
+                        <h3 className="font-semibold text-gray-900">
+                          {chart.xAxis} vs {chart.yAxis}
+                        </h3>
                         <div className="text-sm text-gray-600">
                           <p>File: {chart.fileName}</p>
                           <p>Created: {chart.createdDate.toLocaleDateString()}</p>

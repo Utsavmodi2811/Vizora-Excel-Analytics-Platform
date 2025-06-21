@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { auth } from '../middleware/auth';
+import { auth } from '../middleware/auth.middleware';
 import {
   getUserFiles,
   uploadFile,
@@ -15,7 +15,16 @@ const router = express.Router();
 // Configure multer for file upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    // Create user-specific directory
+    const userId = (req as any).user?._id;
+    if (!userId) {
+      return cb(new Error('User not authenticated'), '');
+    }
+    const userDir = path.join(__dirname, '../../uploads', userId.toString());
+    if (!require('fs').existsSync(userDir)) {
+      require('fs').mkdirSync(userDir, { recursive: true });
+    }
+    cb(null, userDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -38,7 +47,7 @@ router.get('/stats', getFileStats);
 router.post('/upload', upload.single('file'), uploadFile);
 
 // Download a file
-router.get('/:id', downloadFile);
+router.get('/:id/download', downloadFile);
 
 // Delete a file
 router.delete('/:id', deleteFile);

@@ -74,6 +74,47 @@ export const chartAPI = {
     const response = await api.get('/charts/history');
     return response.data;
   },
+
+  createChart: async (chartData: { fileName: string; chartType: string; xAxis: string; yAxis: string; data: any[] }) => {
+    const response = await api.post('/charts/create', chartData);
+    return response.data;
+  },
+};
+
+// File API
+export const fileAPI = {
+  getUserFiles: async () => {
+    const response = await api.get('/files');
+    return response.data;
+  },
+
+  uploadFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/files/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  downloadFile: async (fileId: string) => {
+    const response = await api.get(`/files/${fileId}/download`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  deleteFile: async (fileId: string) => {
+    const response = await api.delete(`/files/${fileId}`);
+    return response.data;
+  },
+
+  getFileStats: async () => {
+    const response = await api.get('/files/stats');
+    return response.data;
+  },
 };
 
 // Admin API

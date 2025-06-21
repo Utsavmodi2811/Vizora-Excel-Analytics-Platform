@@ -29,7 +29,7 @@ const upload = multer({ storage });
 // Get all files for a specific user
 export const getUserFiles = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?._id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
@@ -48,7 +48,7 @@ export const getUserFiles = async (req: Request, res: Response) => {
 // Upload a new file
 export const uploadFile = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?._id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
@@ -97,7 +97,7 @@ export const uploadFile = async (req: Request, res: Response) => {
 // Download a file
 export const downloadFile = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?._id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
@@ -119,7 +119,7 @@ export const downloadFile = async (req: Request, res: Response) => {
 // Delete a file
 export const deleteFile = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?._id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
@@ -149,7 +149,7 @@ export const deleteFile = async (req: Request, res: Response) => {
 // Get file statistics for a user
 export const getFileStats = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?._id;
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
     }

@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { useData } from '@/context/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +33,9 @@ const Analytics = () => {
     legend: true,
     animation: true
   });
+  const [showGrid, setShowGrid] = useState(true);
+  const [showLegend, setShowLegend] = useState(true);
+  const [enableAnimation, setEnableAnimation] = useState(true);
 
   if (!currentData || !fileName) {
     return (
@@ -60,7 +62,7 @@ const Analytics = () => {
 
   const chartData = processChartData();
 
-  const handleCreateChart = () => {
+  const handleCreateChart = async () => {
     if (!selectedXAxis || !selectedYAxis) {
       toast({
         title: 'Missing Selection',
@@ -70,18 +72,26 @@ const Analytics = () => {
       return;
     }
 
-    createChart({
-      fileName: fileName,
-      chartType,
-      xAxis: selectedXAxis,
-      yAxis: selectedYAxis,
-      data: chartData,
-    });
+    try {
+      await createChart({
+        fileName: fileName,
+        chartType,
+        xAxis: selectedXAxis,
+        yAxis: selectedYAxis,
+        data: chartData,
+      });
 
-    toast({
-      title: 'Chart Created Successfully! 🎉',
-      description: 'Your chart has been saved to history',
-    });
+      toast({
+        title: 'Chart Created Successfully! 🎉',
+        description: 'Your chart has been saved to history',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error Creating Chart',
+        description: 'Failed to save chart to history',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleExport = async (format: string) => {
@@ -325,6 +335,12 @@ const Analytics = () => {
           <ChartCustomization 
             onStyleChange={setChartStyle}
             onExport={handleExport}
+            showGrid={showGrid}
+            showLegend={showLegend}
+            enableAnimation={enableAnimation}
+            onShowGridChange={setShowGrid}
+            onShowLegendChange={setShowLegend}
+            onEnableAnimationChange={setEnableAnimation}
           />
         </div>
       </div>

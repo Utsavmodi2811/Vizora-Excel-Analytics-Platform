@@ -1,26 +1,19 @@
 import express from 'express';
-import { getDashboardStats, getUsers, blockUser, deleteUser } from '../controllers/admin.controller';
+import { getDashboardStats, getUsers, blockUser, deleteUser, updateUserRole, toggleUserBlock } from '../controllers/admin.controller';
 import { adminAuth } from '../middleware/auth.middleware';
-import { getAllUsers, updateUserRole, toggleUserBlock } from '../controllers/admin.controller';
 
 const router = express.Router();
-
-// Admin only routes
-router.get('/dashboard', adminAuth, getDashboardStats);
-router.get('/users', adminAuth, getUsers);
-router.patch('/users/:userId/block', adminAuth, blockUser);
-router.delete('/users/:userId', adminAuth, deleteUser);
 
 // All routes are protected with adminAuth middleware
 router.use(adminAuth);
 
-// Get all users
-router.get('/users', getAllUsers);
+// Dashboard stats
+router.get('/dashboard', getDashboardStats);
 
-// Update user role
+// User management
+router.get('/users', getUsers);
 router.patch('/users/:userId/role', updateUserRole);
-
-// Toggle user block status
 router.patch('/users/:userId/block', toggleUserBlock);
+router.delete('/users/:userId', deleteUser);
 
 export default router; 

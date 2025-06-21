@@ -1,13 +1,16 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
+import { chartAPI, fileAPI } from '../lib/api';
 import * as XLSX from 'xlsx';
 
 interface ExcelData {
+  id: string;
   fileName: string;
   data: any[];
   columns: string[];
   uploadDate: Date;
-  id: string;
+  fileType: string;
+  fileSize: number;
 }
 
 interface Chart {
@@ -18,6 +21,7 @@ interface Chart {
   yAxis: string;
   data: any[];
   createdDate: Date;
+  status: string;
 }
 
 interface DataContextType {
@@ -25,11 +29,13 @@ interface DataContextType {
   charts: Chart[];
   currentData: any[] | null;
   fileName: string | null;
+  loading: boolean;
   uploadExcelFile: (file: File) => Promise<void>;
-  createChart: (chartData: Omit<Chart, 'id' | 'createdDate'>) => void;
+  createChart: (chartData: Omit<Chart, 'id' | 'createdDate' | 'status'>) => Promise<void>;
   setCurrentData: (data: ExcelData | null) => void;
-  deleteFile: (id: string) => void;
-  deleteChart: (id: string) => void;
+  deleteFile: (id: string) => Promise<void>;
+  deleteChart: (id: string) => Promise<void>;
+  loadUserData: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -43,59 +49,152 @@ export const useData = () => {
 };
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [excelFiles, setExcelFiles] = useState<ExcelData[]>([]);
   const [charts, setCharts] = useState<Chart[]>([]);
   const [currentData, setCurrentDataState] = useState<any[] | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Load user data when user logs in
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    } else {
+      // Clear data when user logs out
+      setExcelFiles([]);
+      setCharts([]);
+      setCurrentDataState(null);
+      setFileName(null);
+    }
+  }, [user]);
+
+  const loadUserData = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Load user's files
+      const filesResponse = await fileAPI.getUserFiles();
+      const files = filesResponse.files || [];
+      
+      // Load user's chart history
+      const chartsResponse = await chartAPI.getHistory();
+      const analyses = chartsResponse.analyses || [];
+      
+      // Convert backend data to frontend format
+      const convertedFiles: ExcelData[] = files.map((file: any) => ({
+        id: file._id,
+        fileName: file.originalName,
+        data: [], // We'll need to load file data separately if needed
+        columns: [], // We'll need to parse file data to get columns
+        uploadDate: new Date(file.createdAt),
+        fileType: file.fileType,
+        fileSize: file.fileSize
+      }));
+
+      const convertedCharts: Chart[] = analyses.map((analysis: any) => ({
+        id: analysis._id,
+        fileName: analysis.fileName,
+        chartType: analysis.analysisType,
+        xAxis: analysis.result?.xAxis || '',
+        yAxis: analysis.result?.yAxis || '',
+        data: analysis.result?.data || [],
+        createdDate: new Date(analysis.createdAt),
+        status: analysis.status
+      }));
+
+      setExcelFiles(convertedFiles);
+      setCharts(convertedCharts);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const uploadExcelFile = async (file: File): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        try {
-          const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-          
-          if (jsonData.length === 0) {
-            reject(new Error('Excel file is empty'));
-            return;
+    if (!user) throw new Error('User not authenticated');
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        // First, upload file to backend
+        const uploadResponse = await fileAPI.uploadFile(file);
+        
+        // Parse file data for frontend use
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = e.target?.result;
+            const workbook = XLSX.read(data, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            if (jsonData.length === 0) {
+              reject(new Error('Excel file is empty'));
+              return;
+            }
+
+            const columns = Object.keys(jsonData[0] as object);
+            
+            const newFile: ExcelData = {
+              id: uploadResponse.file.id,
+              fileName: file.name,
+              data: jsonData,
+              columns,
+              uploadDate: new Date(),
+              fileType: file.type,
+              fileSize: file.size
+            };
+
+            setExcelFiles(prev => [...prev, newFile]);
+            setCurrentDataState(jsonData);
+            setFileName(file.name);
+            resolve();
+          } catch (error) {
+            reject(new Error('Failed to parse Excel file'));
           }
+        };
 
-          const columns = Object.keys(jsonData[0] as object);
-          
-          const newFile: ExcelData = {
-            id: Date.now().toString(),
-            fileName: file.name,
-            data: jsonData,
-            columns,
-            uploadDate: new Date(),
-          };
-
-          setExcelFiles(prev => [...prev, newFile]);
-          setCurrentDataState(jsonData);
-          setFileName(file.name);
-          resolve();
-        } catch (error) {
-          reject(new Error('Failed to parse Excel file'));
-        }
-      };
-
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsBinaryString(file);
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsBinaryString(file);
+      } catch (error) {
+        reject(error);
+      }
     });
   };
 
-  const createChart = (chartData: Omit<Chart, 'id' | 'createdDate'>) => {
-    const newChart: Chart = {
-      ...chartData,
-      id: Date.now().toString(),
-      createdDate: new Date(),
-    };
-    setCharts(prev => [...prev, newChart]);
+  const createChart = async (chartData: Omit<Chart, 'id' | 'createdDate' | 'status'>) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Call the backend API to create the chart
+      const response = await chartAPI.createChart({
+        fileName: chartData.fileName,
+        chartType: chartData.chartType,
+        xAxis: chartData.xAxis,
+        yAxis: chartData.yAxis,
+        data: chartData.data
+      });
+
+      // Add the new chart to local state
+      const newChart: Chart = {
+        id: response.analysis.id,
+        fileName: response.analysis.fileName,
+        chartType: response.analysis.analysisType,
+        xAxis: response.analysis.result.xAxis,
+        yAxis: response.analysis.result.yAxis,
+        data: response.analysis.result.data,
+        createdDate: new Date(response.analysis.createdAt),
+        status: response.analysis.status
+      };
+
+      setCharts(prev => [...prev, newChart]);
+    } catch (error) {
+      console.error('Error creating chart:', error);
+      throw error;
+    }
   };
 
   const setCurrentData = (data: ExcelData | null) => {
@@ -108,13 +207,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const deleteFile = (id: string) => {
-    setExcelFiles(prev => prev.filter(file => file.id !== id));
-    setCharts(prev => prev.filter(chart => chart.fileName !== excelFiles.find(f => f.id === id)?.fileName));
+  const deleteFile = async (id: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      await fileAPI.deleteFile(id);
+      setExcelFiles(prev => prev.filter(file => file.id !== id));
+      // Also remove charts associated with this file
+      setCharts(prev => prev.filter(chart => chart.fileName !== excelFiles.find(f => f.id === id)?.fileName));
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      throw error;
+    }
   };
 
-  const deleteChart = (id: string) => {
-    setCharts(prev => prev.filter(chart => chart.id !== id));
+  const deleteChart = async (id: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Here you would typically call the backend to delete the chart
+      setCharts(prev => prev.filter(chart => chart.id !== id));
+    } catch (error) {
+      console.error('Error deleting chart:', error);
+      throw error;
+    }
   };
 
   return (
@@ -123,11 +239,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       charts,
       currentData,
       fileName,
+      loading,
       uploadExcelFile,
       createChart,
       setCurrentData,
       deleteFile,
       deleteChart,
+      loadUserData,
     }}>
       {children}
     </DataContext.Provider>

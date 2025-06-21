@@ -1,12 +1,22 @@
 import express from 'express';
-import { getChartData, downloadChart, getAnalysisHistory } from '../controllers/chart.controller';
+import { getChartData, downloadChart, getAnalysisHistory, createChart } from '../controllers/chart.controller';
 import { auth } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
-// Protected routes
-router.get('/data/:analysisId', auth, getChartData);
-router.get('/download/:analysisId', auth, downloadChart);
-router.get('/history', auth, getAnalysisHistory);
+// All routes require authentication
+router.use(auth);
+
+// Get chart data
+router.get('/data/:analysisId', getChartData);
+
+// Download chart as image
+router.get('/download/:analysisId', downloadChart);
+
+// Get analysis history
+router.get('/history', getAnalysisHistory);
+
+// Create a new chart
+router.post('/create', createChart);
 
 export default router; 
