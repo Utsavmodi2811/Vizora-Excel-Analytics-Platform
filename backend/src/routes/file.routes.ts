@@ -6,7 +6,8 @@ import {
   uploadFile,
   downloadFile,
   deleteFile,
-  getFileStats
+  getFileStats,
+  getFileData
 } from '../controllers/file.controller';
 import path from 'path';
 
@@ -42,6 +43,9 @@ router.get('/', getUserFiles);
 
 // Get file statistics for the authenticated user
 router.get('/stats', getFileStats);
+
+// Get file data for re-analysis
+router.get('/:id/data', getFileData);
 
 // Upload a new file
 router.post('/upload', upload.single('file'), uploadFile);

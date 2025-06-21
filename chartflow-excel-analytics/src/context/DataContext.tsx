@@ -33,6 +33,7 @@ interface DataContextType {
   uploadExcelFile: (file: File) => Promise<void>;
   createChart: (chartData: Omit<Chart, 'id' | 'createdDate' | 'status'>) => Promise<void>;
   setCurrentData: (data: ExcelData | null) => void;
+  loadFileData: (fileId: string) => Promise<void>;
   deleteFile: (id: string) => Promise<void>;
   deleteChart: (id: string) => Promise<void>;
   loadUserData: () => Promise<void>;
@@ -207,6 +208,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const loadFileData = async (fileId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      // Load file data from backend
+      const response = await fileAPI.getFileData(fileId);
+      const file = response.file;
+      
+      // Set file data as current data for re-analysis
+      setCurrentDataState(file.data);
+      setFileName(file.fileName);
+    } catch (error) {
+      console.error('Error loading file data:', error);
+      throw error;
+    }
+  };
+
   const deleteFile = async (id: string) => {
     if (!user) throw new Error('User not authenticated');
 
@@ -243,6 +261,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       uploadExcelFile,
       createChart,
       setCurrentData,
+      loadFileData,
       deleteFile,
       deleteChart,
       loadUserData,

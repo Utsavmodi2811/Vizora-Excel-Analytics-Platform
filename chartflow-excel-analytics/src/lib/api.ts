@@ -99,6 +99,11 @@ export const fileAPI = {
     return response.data;
   },
 
+  getFileData: async (fileId: string) => {
+    const response = await api.get(`/files/${fileId}/data`);
+    return response.data;
+  },
+
   downloadFile: async (fileId: string) => {
     const response = await api.get(`/files/${fileId}/download`, {
       responseType: 'blob',

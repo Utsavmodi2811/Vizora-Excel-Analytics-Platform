@@ -2,12 +2,14 @@ import { useData } from '@/context/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Download, Eye, Loader2 } from 'lucide-react';
+import { Trash2, Download, Eye, Loader2, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const History = () => {
-  const { excelFiles, charts, deleteFile, deleteChart, setCurrentData, loading } = useData();
+  const { excelFiles, charts, deleteFile, deleteChart, loadFileData, loading } = useData();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleDeleteFile = async (id: string, fileName: string) => {
     try {
@@ -41,12 +43,22 @@ const History = () => {
     }
   };
 
-  const handleViewFile = (file: any) => {
-    setCurrentData(file);
-    toast({
-      title: 'File Selected',
-      description: `${file.fileName} is now active for analysis`,
-    });
+  const handleReAnalyzeFile = async (fileId: string, fileName: string) => {
+    try {
+      await loadFileData(fileId);
+      toast({
+        title: 'File Loaded',
+        description: `${fileName} is now active for analysis`,
+      });
+      // Navigate to Analytics page
+      navigate('/analytics');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load file for analysis',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (loading) {
@@ -96,9 +108,9 @@ const History = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleViewFile(file)}
+                          onClick={() => handleReAnalyzeFile(file.id, file.fileName)}
                         >
-                          <Eye className="w-4 h-4" />
+                          <BarChart3 className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
