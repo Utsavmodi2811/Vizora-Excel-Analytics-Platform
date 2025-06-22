@@ -28,6 +28,7 @@ import {
   Settings as SettingsIcon,
   RefreshCw
 } from 'lucide-react';
+import { authAPI } from '../lib/api';
 
 const Settings = () => {
   const { user, updateProfile } = useAuth();
@@ -58,6 +59,7 @@ const Settings = () => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+      setEmailNotifications(user.emailNotifications !== false); // Default to true if not set
     }
   }, [user]);
 
@@ -108,14 +110,13 @@ const Settings = () => {
 
     setIsChangingPassword(true);
     try {
-      // This would need a separate API endpoint for password change
-      // await updatePassword({ currentPassword, newPassword });
-      toast.success('Password changed successfully!');
+      await authAPI.changePassword({ currentPassword, newPassword });
+      toast.success('Password changed successfully! Check your email for confirmation.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error) {
-      toast.error('Failed to change password. Please try again.');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to change password. Please try again.');
     } finally {
       setIsChangingPassword(false);
     }
@@ -226,7 +227,7 @@ const Settings = () => {
           <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
             <Bell className="w-5 h-5" />
             Email Notifications
-            <Badge variant="secondary" className="ml-2">New</Badge>
+            <Badge variant="secondary" className="ml-2">Working</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
@@ -237,65 +238,28 @@ const Settings = () => {
                   <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Analysis Complete</Label>
-                  <p className="text-xs text-gray-500">Get notified when your data analysis is ready</p>
+                  <Label className="text-sm font-medium">Email Notifications</Label>
+                  <p className="text-xs text-gray-500">Get notified about important account and analysis events</p>
                 </div>
               </div>
               <Switch
-                checked={analysisComplete}
-                onCheckedChange={setAnalysisComplete}
+                checked={emailNotifications}
+                onCheckedChange={setEmailNotifications}
               />
             </div>
-
+            {/*
+            // The following toggles are not yet functional:
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Weekly Reports</Label>
-                  <p className="text-xs text-gray-500">Receive weekly summaries of your analytics activity</p>
-                </div>
-              </div>
-              <Switch
-                checked={weeklyReports}
-                onCheckedChange={setWeeklyReports}
-              />
+              ... Weekly Reports ...
             </div>
-
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Security Alerts</Label>
-                  <p className="text-xs text-gray-500">Important security notifications and login alerts</p>
-                </div>
-              </div>
-              <Switch
-                checked={securityAlerts}
-                onCheckedChange={setSecurityAlerts}
-              />
+              ... Security Alerts ...
             </div>
-
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Marketing Emails</Label>
-                  <p className="text-xs text-gray-500">Product updates, tips, and promotional content</p>
-                </div>
-              </div>
-              <Switch
-                checked={marketingEmails}
-                onCheckedChange={setMarketingEmails}
-              />
+              ... Marketing Emails ...
             </div>
+            */}
           </div>
-
           <div className="flex items-center gap-3">
             <Button 
               onClick={handleSaveNotifications}

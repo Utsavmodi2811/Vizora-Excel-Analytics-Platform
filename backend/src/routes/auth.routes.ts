@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, getCurrentUser, heartbeat, updateProfile, requestPasswordReset, resetPassword } from '../controllers/auth.controller';
+import { register, login, getCurrentUser, heartbeat, updateProfile, requestPasswordReset, resetPassword, changePassword } from '../controllers/auth.controller';
 import { auth } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -15,5 +15,6 @@ router.get('/me', auth, getCurrentUser);
 router.get('/profile', auth, getCurrentUser);
 router.patch('/profile', auth, updateProfile);
 router.post('/heartbeat', auth, heartbeat);
+router.post('/change-password', auth, changePassword);
 
 export default router; 

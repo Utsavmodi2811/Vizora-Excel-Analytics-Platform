@@ -7,6 +7,7 @@ interface User {
   email: string;
   role: 'user' | 'admin';
   isFirstLogin: boolean;
+  emailNotifications?: boolean;
 }
 
 interface AuthContextType {

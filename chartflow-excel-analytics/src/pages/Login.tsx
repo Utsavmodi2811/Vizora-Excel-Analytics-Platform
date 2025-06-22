@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Mail, Lock, BarChart2, Sparkles, Zap, Shield, ArrowRight, User, Database, TrendingUp, Star, Heart, Target, Zap as Lightning, MousePointer, Wifi, Cpu, Zap as Bolt } from 'lucide-react';
+import AuthBackground from '@/components/AuthBackground';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -68,99 +69,7 @@ const Login = () => {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20 animate-pulse"></div>
-        <div className="absolute inset-0 bg-gradient-to-tl from-green-600/10 via-yellow-600/10 to-orange-600/10 animate-pulse delay-1000"></div>
-      </div>
-
-      {/* Mouse Tracking Light Effect */}
-      <div 
-        className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl pointer-events-none transition-all duration-300 ease-out"
-        style={{
-          left: mousePosition.x - 192,
-          top: mousePosition.y - 192,
-          transform: `scale(${isHovering ? 1.5 : 1})`
-        }}
-      />
-
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Floating Data Points with more variety */}
-        <div className={`absolute top-20 left-10 w-4 h-4 bg-blue-400 rounded-full opacity-60 animate-pulse transition-all duration-1000 ${animateElements ? 'translate-y-20' : ''}`}></div>
-        <div className={`absolute top-40 right-20 w-6 h-6 bg-purple-400 rounded-full opacity-40 animate-pulse transition-all duration-1000 delay-300 ${animateElements ? 'translate-y-32' : ''}`}></div>
-        <div className={`absolute bottom-40 left-20 w-3 h-3 bg-pink-400 rounded-full opacity-50 animate-pulse transition-all duration-1000 delay-500 ${animateElements ? 'translate-y-16' : ''}`}></div>
-        <div className={`absolute bottom-20 right-10 w-5 h-5 bg-green-400 rounded-full opacity-30 animate-pulse transition-all duration-1000 delay-700 ${animateElements ? 'translate-y-24' : ''}`}></div>
-        
-        {/* Additional floating elements */}
-        <div className={`absolute top-1/4 left-1/4 w-2 h-2 bg-yellow-400 rounded-full opacity-40 animate-bounce transition-all duration-1500 delay-200 ${animateElements ? 'translate-x-16' : ''}`}></div>
-        <div className={`absolute top-3/4 right-1/3 w-3 h-3 bg-cyan-400 rounded-full opacity-35 animate-pulse transition-all duration-1200 delay-400 ${animateElements ? 'translate-y-12' : ''}`}></div>
-        <div className={`absolute bottom-1/3 left-1/2 w-4 h-4 bg-orange-400 rounded-full opacity-25 animate-ping transition-all duration-1800 delay-600 ${animateElements ? 'translate-x-8' : ''}`}></div>
-        
-        {/* Moving Lines with more variety */}
-        <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-30 transition-all duration-2000 ${animateElements ? 'translate-x-full' : '-translate-x-full'}`}></div>
-        <div className={`absolute bottom-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-30 transition-all duration-2000 delay-1000 ${animateElements ? '-translate-x-full' : 'translate-x-full'}`}></div>
-        <div className={`absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-20 transition-all duration-3000 delay-500 ${animateElements ? 'translate-x-full' : '-translate-x-full'}`}></div>
-        
-        {/* Diagonal moving lines */}
-        <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-green-500 to-transparent opacity-25 transition-all duration-2500 delay-300 ${animateElements ? 'translate-y-full' : '-translate-y-full'}`}></div>
-        <div className={`absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-transparent via-yellow-500 to-transparent opacity-25 transition-all duration-2500 delay-800 ${animateElements ? 'translate-y-full' : '-translate-y-full'}`}></div>
-        
-        {/* Grid Pattern with animation */}
-        <div className="absolute inset-0 opacity-10">
-          <div className={`absolute inset-0 transition-all duration-5000 ${animateElements ? 'scale-110' : 'scale-100'}`} style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-            backgroundSize: '50px 50px'
-          }}></div>
-        </div>
-
-        {/* Floating Icons */}
-        <div className={`absolute top-1/4 right-1/4 text-2xl opacity-20 transition-all duration-2000 delay-300 ${animateElements ? 'rotate-12 scale-110' : 'rotate-0 scale-100'}`}>
-          📊
-        </div>
-        <div className={`absolute bottom-1/4 left-1/4 text-xl opacity-15 transition-all duration-2000 delay-600 ${animateElements ? '-rotate-12 scale-110' : 'rotate-0 scale-100'}`}>
-          📈
-        </div>
-        <div className={`absolute top-1/2 right-1/3 text-lg opacity-25 transition-all duration-2000 delay-900 ${animateElements ? 'rotate-6 scale-110' : 'rotate-0 scale-100'}`}>
-          💡
-        </div>
-
-        {/* Animated Tech Icons */}
-        <div className={`absolute top-1/6 left-1/6 text-lg opacity-15 transition-all duration-3000 delay-400 ${animateElements ? 'rotate-45 scale-125' : 'rotate-0 scale-100'}`}>
-          <Cpu className="w-6 h-6 text-blue-400" />
-        </div>
-        <div className={`absolute bottom-1/6 right-1/6 text-lg opacity-15 transition-all duration-3000 delay-600 ${animateElements ? '-rotate-45 scale-125' : 'rotate-0 scale-100'}`}>
-          <Wifi className="w-6 h-6 text-green-400" />
-        </div>
-        <div className={`absolute top-2/3 left-1/3 text-lg opacity-15 transition-all duration-3000 delay-800 ${animateElements ? 'rotate-90 scale-125' : 'rotate-0 scale-100'}`}>
-          <Bolt className="w-6 h-6 text-yellow-400" />
-        </div>
-      </div>
-
-      {/* Particle System */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className={`absolute w-1 h-1 bg-white rounded-full opacity-30 transition-all duration-3000 delay-${i * 100}`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `float-particle ${3 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Animated Corner Decorations */}
-      <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-blue-400/30 rounded-tl-lg"></div>
-      <div className="absolute top-0 right-0 w-32 h-32 border-r-2 border-t-2 border-purple-400/30 rounded-tr-lg"></div>
-      <div className="absolute bottom-0 left-0 w-32 h-32 border-l-2 border-b-2 border-pink-400/30 rounded-bl-lg"></div>
-      <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-green-400/30 rounded-br-lg"></div>
-
-      {/* Main Content */}
+    <AuthBackground>
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Logo Section with enhanced animation */}
@@ -299,17 +208,7 @@ const Login = () => {
           </div>
         </div>
       </div>
-
-      {/* Enhanced Decorative Elements */}
-      <div className="absolute top-10 right-10 text-6xl opacity-20 animate-bounce">📊</div>
-      <div className="absolute bottom-10 left-10 text-4xl opacity-20 animate-pulse">⚡</div>
-      <div className="absolute top-1/2 left-5 text-3xl opacity-30 animate-spin" style={{animationDuration: '20s'}}>✨</div>
-      <div className="absolute top-1/3 right-5 text-2xl opacity-25 animate-pulse delay-1000">💎</div>
-      <div className="absolute bottom-1/3 left-5 text-xl opacity-20 animate-bounce delay-500">🚀</div>
-      <div className="absolute top-3/4 right-5 text-lg opacity-15 animate-ping delay-700">⭐</div>
-      <div className="absolute bottom-1/4 right-5 text-sm opacity-20 animate-pulse delay-300">🎯</div>
-      <div className="absolute top-1/4 left-5 text-lg opacity-15 animate-bounce delay-400">💫</div>
-    </div>
+    </AuthBackground>
   );
 };
 

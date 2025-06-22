@@ -200,6 +200,64 @@ const getAnalysisCompleteTemplate = (name: string, analysisName: string) => `
 </html>
 `;
 
+const getPasswordChangeTemplate = (name: string, timestamp: string, ipAddress?: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Changed</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .button { display: inline-block; background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; margin: 20px 0; }
+        .info { background: #e3f2fd; border: 1px solid #bbdefb; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Password Changed</h1>
+            <p>Your Vizora account security update</p>
+        </div>
+        <div class="content">
+            <h2>Hello ${name}!</h2>
+            <p>Your password for your Vizora Analytics account has been successfully changed.</p>
+            
+            <div class="info">
+                <h3>📅 Change Details:</h3>
+                <p><strong>Time:</strong> ${timestamp}</p>
+                ${ipAddress ? `<p><strong>IP Address:</strong> ${ipAddress}</p>` : ''}
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Security Notice:</strong>
+                <ul>
+                    <li>If you didn't make this change, please contact support immediately</li>
+                    <li>Consider enabling two-factor authentication for extra security</li>
+                    <li>Never share your password with anyone</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard" class="button">Go to Dashboard</a>
+            </div>
+            
+            <p>If you have any questions or concerns about this change, please don't hesitate to contact our support team.</p>
+        </div>
+        <div class="footer">
+            <p>© 2024 Vizora Analytics. All rights reserved.</p>
+            <p>This email was sent to you because your password was changed.</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
 // Email sending functions
 export async function sendWelcomeEmail(to: string, name: string) {
   const config = getEmailConfig();
@@ -279,6 +337,42 @@ export async function sendAnalysisCompleteEmail(to: string, name: string, analys
     }
   } catch (error) {
     console.error('❌ Failed to send analysis completion email:', error);
+  }
+}
+
+export async function sendPasswordChangeEmail(to: string, name: string, ipAddress?: string) {
+  const config = getEmailConfig();
+  
+  if (!config) {
+    console.log(`[EMAIL LOG] Password change email would be sent to ${to} for user ${name}`);
+    return;
+  }
+
+  const timestamp = new Date().toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  const mailOptions = {
+    from: config.from || 'noreply@vizora.com',
+    to,
+    subject: '🔐 Your Vizora Password Has Been Changed',
+    html: getPasswordChangeTemplate(name, timestamp, ipAddress)
+  };
+  
+  try {
+    if (transporter) {
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Password change email sent to ${to}`);
+    } else {
+      console.log(`[EMAIL LOG] Password change email would be sent to ${to} for user ${name}`);
+    }
+  } catch (error) {
+    console.error('❌ Failed to send password change email:', error);
   }
 }
 
