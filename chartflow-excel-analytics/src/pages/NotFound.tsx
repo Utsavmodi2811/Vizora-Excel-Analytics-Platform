@@ -1,5 +1,9 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import AnimatedBackground from "@/components/AnimatedBackground";
+import { Button } from "@/components/ui/button";
+import { Home, AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,15 +16,33 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <AnimatedBackground>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-white/20 dark:border-gray-700/20 rounded-2xl p-8 shadow-2xl max-w-md w-full">
+          <div className="mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-orange-500 rounded-full mb-4 shadow-lg">
+              <AlertTriangle className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-6xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent mb-4">
+              404
+            </h1>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+              Page Not Found
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              The page you're looking for doesn't exist or has been moved.
+            </p>
+          </div>
+          
+          <Link to="/">
+            <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto">
+              <Home className="w-4 h-4" />
+              Return to Home
+            </Button>
+          </Link>
+        </div>
       </div>
-    </div>
+    </AnimatedBackground>
   );
 };
 
