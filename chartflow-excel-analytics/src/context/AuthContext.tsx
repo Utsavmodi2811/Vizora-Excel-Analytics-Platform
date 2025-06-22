@@ -6,6 +6,7 @@ interface User {
   name: string;
   email: string;
   role: 'user' | 'admin';
+  isFirstLogin: boolean;
 }
 
 interface AuthContextType {

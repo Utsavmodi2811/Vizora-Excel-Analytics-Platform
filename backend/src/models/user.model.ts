@@ -9,6 +9,7 @@ export interface IUser extends Document {
   isBlocked: boolean;
   lastActive: Date;
   emailNotifications?: boolean;
+  isFirstLogin: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -47,6 +48,10 @@ const userSchema = new Schema<IUser>(
       default: Date.now
     },
     emailNotifications: {
+      type: Boolean,
+      default: true
+    },
+    isFirstLogin: {
       type: Boolean,
       default: true
     }

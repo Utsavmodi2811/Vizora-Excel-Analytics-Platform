@@ -3,12 +3,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+// Load environment variables FIRST, before any other imports
+const envPath = path_1.default.resolve(__dirname, '../.env');
+console.log('🔍 Loading .env from:', envPath);
+const result = dotenv_1.default.config({ path: envPath });
+if (result.error) {
+    console.error('❌ Error loading .env file:', result.error);
+}
+else {
+    console.log('✅ .env file loaded successfully');
+    console.log('🔍 Environment variables:');
+    console.log('  EMAIL_SERVICE:', process.env.EMAIL_SERVICE);
+    console.log('  EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
+    console.log('  EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET');
+    console.log('  MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
+    console.log('  JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
+}
 const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const fs_1 = __importDefault(require("fs"));
 // Import routes
@@ -18,13 +35,16 @@ const excel_routes_1 = __importDefault(require("./routes/excel.routes"));
 const chart_routes_1 = __importDefault(require("./routes/chart.routes"));
 const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
 const file_routes_1 = __importDefault(require("./routes/file.routes"));
-// Load environment variables
-dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Middleware
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: ['http://localhost:3001', 'http://localhost:5173', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use((0, helmet_1.default)());
 app.use((0, morgan_1.default)('dev'));
 // Rate limiting

@@ -63,17 +63,25 @@ exports.register = register;
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log('🔍 Login Debug:');
+        console.log('  Email:', email);
+        console.log('  Password provided:', password ? 'YES' : 'NO');
         // Find user
         const user = await user_model_1.User.findOne({ email });
         if (!user) {
+            console.log('  User not found');
             return res.status(401).json({ message: 'Invalid credentials' });
         }
+        console.log('  User found:', { id: user._id, name: user.name, email: user.email });
+        console.log('  Stored password hash:', user.password ? 'EXISTS' : 'MISSING');
         // Check if user is blocked
         if (user.isBlocked) {
+            console.log('  User is blocked');
             return res.status(403).json({ message: 'Account is blocked' });
         }
         // Verify password
         const isMatch = await bcryptjs_1.default.compare(password, user.password);
+        console.log('  Password match:', isMatch);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -96,6 +104,7 @@ const login = async (req, res) => {
             role: user.role,
             isBlocked: user.isBlocked
         };
+        console.log('  Login successful for user:', userData.name);
         res.json({
             message: 'Login successful',
             token,
@@ -209,7 +218,7 @@ const requestPasswordReset = async (req, res) => {
         const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
         // Send password reset email
         try {
-            await (0, email_service_1.sendPasswordResetEmail)(email, resetLink);
+            await (0, email_service_1.sendPasswordResetEmail)(email, resetLink, user.name);
             res.json({ message: 'Password reset email sent successfully' });
         }
         catch (emailError) {

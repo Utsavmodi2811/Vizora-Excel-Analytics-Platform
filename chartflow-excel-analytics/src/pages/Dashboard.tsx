@@ -1,6 +1,7 @@
 import { useData } from '@/context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FirstLoginNotification } from '@/components/FirstLoginNotification';
 import { 
   Upload, 
   FileText, 
@@ -37,6 +38,7 @@ import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import React from 'react';
 
 const Dashboard = () => {
   const { excelFiles, charts } = useData();
@@ -46,6 +48,15 @@ const Dashboard = () => {
   
   // State for showing all charts vs recent charts
   const [showAllCharts, setShowAllCharts] = useState(false);
+  // State for first login notification
+  const [showFirstLoginNotification, setShowFirstLoginNotification] = useState(false);
+
+  // Show first login notification if user is first time logging in
+  React.useEffect(() => {
+    if (user?.isFirstLogin) {
+      setShowFirstLoginNotification(true);
+    }
+  }, [user?.isFirstLogin]);
 
   const stats = [
     {
@@ -195,6 +206,13 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8 p-6">
+      {/* First Login Notification */}
+      {showFirstLoginNotification && (
+        <FirstLoginNotification 
+          onDismiss={() => setShowFirstLoginNotification(false)} 
+        />
+      )}
+
       {/* Welcome Section with Enhanced Visuals */}
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white relative overflow-hidden">
         {/* Background Pattern */}

@@ -15,17 +15,14 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
+    // Create new user (password will be hashed by the model pre-save hook)
     const user = new User({
       name,
       email,
-      password: hashedPassword,
+      password, // Use plain password - model will hash it
       role: 'user',
-      isBlocked: false
+      isBlocked: false,
+      isFirstLogin: true
     });
 
     await user.save();
@@ -51,7 +48,8 @@ export const register = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      isBlocked: user.isBlocked
+      isBlocked: user.isBlocked,
+      isFirstLogin: user.isFirstLogin
     };
 
     res.status(201).json({
@@ -70,19 +68,30 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    console.log('🔍 Login Debug:');
+    console.log('  Email:', email);
+    console.log('  Password provided:', password ? 'YES' : 'NO');
+
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('  User not found');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    console.log('  User found:', { id: user._id, name: user.name, email: user.email });
+    console.log('  Stored password hash:', user.password ? 'EXISTS' : 'MISSING');
+
     // Check if user is blocked
     if (user.isBlocked) {
+      console.log('  User is blocked');
       return res.status(403).json({ message: 'Account is blocked' });
     }
 
     // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('  Password match:', isMatch);
+    
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -109,9 +118,17 @@ export const login = async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      isBlocked: user.isBlocked
+      isBlocked: user.isBlocked,
+      isFirstLogin: user.isFirstLogin
     };
 
+    // If this is the first login, update the flag
+    if (user.isFirstLogin) {
+      user.isFirstLogin = false;
+      await user.save();
+    }
+
+    console.log('  Login successful for user:', userData.name);
     res.json({
       message: 'Login successful',
       token,
@@ -235,7 +252,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
     // Send password reset email
     try {
-      await sendPasswordResetEmail(email, resetLink);
+      await sendPasswordResetEmail(email, resetLink, user.name);
       res.json({ message: 'Password reset email sent successfully' });
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);

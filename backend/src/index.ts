@@ -1,9 +1,28 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables FIRST, before any other imports
+const envPath = path.resolve(__dirname, '../.env');
+console.log('🔍 Loading .env from:', envPath);
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.error('❌ Error loading .env file:', result.error);
+} else {
+  console.log('✅ .env file loaded successfully');
+  console.log('🔍 Environment variables:');
+  console.log('  EMAIL_SERVICE:', process.env.EMAIL_SERVICE);
+  console.log('  EMAIL_USER:', process.env.EMAIL_USER ? 'SET' : 'NOT SET');
+  console.log('  EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'NOT SET');
+  console.log('  MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
+  console.log('  JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
+}
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 
@@ -15,15 +34,17 @@ import chartRoutes from './routes/chart.routes';
 import adminRoutes from './routes/admin.routes';
 import fileRoutes from './routes/file.routes';
 
-// Load environment variables
-dotenv.config();
-
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3001', 'http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(helmet());
 app.use(morgan('dev'));
 
