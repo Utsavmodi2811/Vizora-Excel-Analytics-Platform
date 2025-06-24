@@ -58,39 +58,6 @@ const Dashboard = () => {
     }
   }, [user?.isFirstLogin]);
 
-  const stats = [
-    {
-      title: 'Total Files',
-      value: excelFiles.length,
-      icon: FileText,
-      color: 'from-blue-500 via-blue-600 to-blue-700',
-      bgColor: 'bg-blue-50 dark:bg-blue-950',
-      description: 'Excel files uploaded',
-      gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      image: '📊'
-    },
-    {
-      title: 'Charts Created',
-      value: charts.length,
-      icon: BarChart3,
-      color: 'from-emerald-500 via-emerald-600 to-emerald-700',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950',
-      description: 'Visualizations generated',
-      gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
-      image: '📈'
-    },
-    {
-      title: 'Data Insights',
-      value: excelFiles.length + charts.length,
-      icon: TrendingUp,
-      color: 'from-purple-500 via-purple-600 to-purple-700',
-      bgColor: 'bg-purple-50 dark:bg-purple-950',
-      description: 'Analytics performed',
-      gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
-      image: '🔍'
-    }
-  ];
-
   const recentFiles = excelFiles
     .sort((a, b) => b.uploadDate.getTime() - a.uploadDate.getTime())
     .slice(0, 5);
@@ -235,32 +202,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => {
-          const IconComponent = stat.icon;
-          return (
-            <Card key={index} className="backdrop-blur-sm bg-white/60 dark:bg-gray-900/60 border-white/30 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-12 h-12 ${stat.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
-                        <IconComponent className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="text-4xl">{stat.image}</div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{stat.value}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">{stat.title}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{stat.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
       {/* About Vizora Analytics - Completely Redesigned */}
       <div className="relative overflow-hidden">
         {/* Background with gradient and pattern */}
@@ -316,20 +257,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   Process millions of data points in seconds with our optimized engine
                 </p>
-                <div className="space-y-1 text-xs text-blue-600 dark:text-blue-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Parallel processing
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Memory optimization
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Real-time analytics
-                  </div>
-                </div>
               </div>
 
               <div className="group relative p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 rounded-2xl border border-emerald-200 dark:border-emerald-800 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -341,20 +268,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   Bank-level encryption and compliance for your sensitive data
                 </p>
-                <div className="space-y-1 text-xs text-emerald-600 dark:text-emerald-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    End-to-end encryption
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    GDPR compliant
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    SOC 2 certified
-                  </div>
-                </div>
               </div>
 
               <div className="group relative p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-2xl border border-purple-200 dark:border-purple-800 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -366,20 +279,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   Create stunning 2D and 3D charts with interactive features
                 </p>
-                <div className="space-y-1 text-xs text-purple-600 dark:text-purple-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    20+ chart types
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    Interactive dashboards
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    Custom themes
-                  </div>
-                </div>
               </div>
 
               <div className="group relative p-6 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 rounded-2xl border border-orange-200 dark:border-orange-800 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
@@ -391,20 +290,6 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                   AI-powered analysis reveals hidden patterns and trends
                 </p>
-                <div className="space-y-1 text-xs text-orange-600 dark:text-orange-400">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    Pattern recognition
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    Anomaly detection
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    Predictive analytics
-                  </div>
-                </div>
               </div>
             </div>
           </CardContent>
